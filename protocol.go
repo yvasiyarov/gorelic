@@ -17,7 +17,7 @@ const AGENT_VERSION = "0.1"
 const START_COLLECTOR_URL = "http://collector.newrelic.com"
 const COLLECTOR_METHOD = "/agent_listener/invoke_raw_method"
 
-type JsonParams map[string]interface{}
+type JsonParams interface{}
 type Packet struct {
 	params       url.Values
 	header       http.Header
@@ -31,7 +31,6 @@ func NewPacket() *Packet {
 	p := &Packet{
 		params:     url.Values{},
 		header:     http.Header{},
-		jsonParams: JsonParams{},
 	}
 	p.params.Add("license_key", LicenseKey)
 	p.params.Add("protocol_version", "12")
@@ -50,7 +49,17 @@ func NewPacketGetRedirectHost() *Packet {
 	packet := NewPacket()
 	packet.params.Add("method", "get_redirect_host")
 	packet.url = START_COLLECTOR_URL
+	packet.jsonParams = map[string]string{}
 
+	return packet
+}
+
+func NewPacketConnect(url string, jsonParams JsonParams) *Packet {
+
+	packet := NewPacket()
+	packet.params.Add("method", "connect")
+	packet.url = url
+    packet.jsonParams = jsonParams
 	return packet
 }
 

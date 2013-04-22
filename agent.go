@@ -63,7 +63,59 @@ func NewAgent() *Agent {
     return a
 }
 
-type Settings struct {
+type AgentSettings struct {
+    StartupTimeout float `json:"startup_timeout"`
+    DebugLogDataCollectorCalls bool `json:"debug.log_data_collector_calls"`
+    EncodingKey string `json:"encoding_key"`
+    ApplicationId string `json:"application_id"`
+    ThreadProfilerEnabled bool `json:"thread_profiler.enabled"` 
+    ErrorCollectorCaptureSource bool `json:"error_collector.capture_source"` 
+    CaptureParams bool `json:"capture_params"`
+    AgentLimitsSqlQueryLengthMaximum int `json:"agent_limits.sql_query_length_maximum"`
+    ProxyPort int `json:"proxy_port"`
+    IncludeEnviron []string `json:"include_environ"`  
+    TransactionNameLimit int `json:"transaction_name.limit"`
+    BrowserKey string `json:"browser_key"`
+    DebugLogTransactionTracePayload bool `json:"debug.log_transaction_trace_payload"`
+    ShutdownTimeout float `json:"shutdown_timeout"`
+    TrustedAccountIds []int `json:"trusted_account_ids"`
+    WebTransactionsApdex interface{} `json:"web_transactions_apdex"`
+    Port int `json:"port"`
+    AppName string `json:"app_name"`
+    TransactionNameRules []string `json:"transaction_name_rules"`
+    AgentLimitsTransactionTracesNodes int `json:"agent_limits.transaction_traces_nodes"`
+    TransactionTracerEnabled bool `json:"transaction_tracer.enabled"`
+    LogLevel int `json:"log_level"`
+    ProxyHost string `json:"proxy_host"`
+    IgnoredParams []string `json:"ignored_params"
+    AgentLimitsSqlExplainPlans int `json:"agent_limits.sql_explain_plans"`
+}
+
+func NewAgentSettings() *AgentSettings {
+    s := &AgentSettings{
+        StartupTimeout: 0.0,
+        DebugLogDataCollectorCalls: true,
+        ThreadProfilerEnabled: true,
+        ErrorCollectorCaptureSource: false,
+        CaptureParams: true,
+        AgentLimitsSqlQueryLengthMaximum: 16384,
+        ProxyPort: 0,
+        IncludeEnviron: []string{"REQUEST_METHOD", "HTTP_USER_AGENT", "HTTP_REFERER", "CONTENT_TYPE", "CONTENT_LENGTH"},
+        TransactionNameLimit: 0,
+        DebugLogTransactionTracePayload: false,
+        ShutdownTimeout: 30.0,
+        TrustedAccountIds: []int{},
+        WebTransactionsApdex: map[string]string{},
+        Port: 0, 
+        AppName: "Python Agent Test",
+        TransactionNameRules: []string{},
+        AgentLimitsTransactionTracesNodes: 2000,
+        TransactionTracerEnabled: true,
+        LogLevel: 10,
+        IgnoredParams: []string{},
+        AgentLimitsSqlExplainPlans: 30,
+    }
+    return s
 }
 
 

@@ -32,7 +32,8 @@ func NewPacket() *Packet {
 		params: url.Values{},
 		header: http.Header{},
 	}
-	p.params.Add("license_key", LicenseKey)
+	p.params.Add("license_key", "7bceac019c7dcafae1ef95be3e3a3ff8866de246")
+	//p.params.Add("license_key", LicenseKey)
 	p.params.Add("protocol_version", "12")
 	p.params.Add("marshal_format", "json")
 
@@ -73,6 +74,7 @@ func (packet *Packet) Send() error {
 	//}
 
 	body := ioutil.NopCloser(strings.NewReader(string(bodyContent)))
+	fmt.Println(string(bodyContent))
 
 	urlParams := packet.params.Encode()
 	if req, err := http.NewRequest("POST", packet.url+COLLECTOR_METHOD+"?"+urlParams, body); err != nil {

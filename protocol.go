@@ -29,8 +29,8 @@ type Packet struct {
 
 func NewPacket() *Packet {
 	p := &Packet{
-		params:     url.Values{},
-		header:     http.Header{},
+		params: url.Values{},
+		header: http.Header{},
 	}
 	p.params.Add("license_key", LicenseKey)
 	p.params.Add("protocol_version", "12")
@@ -59,7 +59,7 @@ func NewPacketConnect(url string, jsonParams JsonParams) *Packet {
 	packet := NewPacket()
 	packet.params.Add("method", "connect")
 	packet.url = url
-    packet.jsonParams = jsonParams
+	packet.jsonParams = jsonParams
 	return packet
 }
 

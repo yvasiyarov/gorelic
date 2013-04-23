@@ -16,9 +16,9 @@ func TestGetRedirectHost(t *testing.T) {
 }
 
 func TestConnect(t *testing.T) {
-    agent := NewAgent()
-    
-    jsonParams := []*Agent{agent}
+	agent := NewAgent()
+
+	jsonParams := []*Agent{agent}
 	packet := NewPacketConnect("http://collector-6.newrelic.com", jsonParams)
 	if err := packet.Send(); err != nil {
 		t.Errorf("Can not send get redirect host packet: %#v \n", err)
@@ -27,4 +27,3 @@ func TestConnect(t *testing.T) {
 		fmt.Printf("Got response: %#v \nerror: %v\n", resp, err)
 	}
 }
-

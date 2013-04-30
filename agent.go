@@ -7,7 +7,7 @@ import (
 //	"io/ioutil"
 //	"net/http"
 //	"net/url"
-//	"strings"
+	"reflect"
 )
 
 type environmentAttribute []interface{}
@@ -37,6 +37,7 @@ func NewAgentEnvironment() *AgentEnvironment {
 	return env
 }
 
+
 type Agent struct {
 	AppName      []string          `json:"app_name"`
 	Language     string            `json:"language"`
@@ -61,6 +62,54 @@ func NewAgent() *Agent {
 	return a
 }
 
+/*
+
+{"agent_run_id":463114387,
+"product_level":40,
+"episodes_url":"https:\/\/d1ros97qkrwjf5.cloudfront.net\/42\/eum\/rum.js",
+"cross_process_id":"142416#1783720",
+"collect_errors":true,
+"url_rules":
+[
+    {"ignore":false,
+    "replacement":"\/*.\\1",
+    "replace_all":false,
+    "each_segment":false,
+    "terminate_chain":true,
+    "eval_order":1000,
+    "match_expression":".*\\.(ace|arj|ini|txt|udl|plist|css|gif|ico|jpe?g|js|png|swf|woff|caf|aiff|m4v|mpe?g|mp3|mp4|mov)$"},
+    
+    {"ignore":false,
+    "replacement":"*",
+    "replace_all":false,
+    "each_segment":true,
+    "terminate_chain":false,
+    "eval_order":1001,
+    "match_expression":"^[0-9][0-9a-f_,.-]*$"},
+
+   {"ignore":false,
+   "replacement":"\\1\/.*\\2",
+   "replace_all":false,
+   "each_segment":false,
+   "terminate_chain":false,
+   "eval_order":1002,
+   "match_expression":"^(.*)\/[0-9][0-9a-f_,-]*\\.([0-9a-z][0-9a-z]*)$"}
+],
+"messages":[
+    {"message":"Reporting to: https:\/\/rpm.newrelic.com\/accounts\/142416\/applications\/1783720",
+    "level":"INFO"}
+],
+"data_report_period":60,
+"collect_traces":true,
+"sampling_rate":0,
+"browser_key":"04ff564b25",
+"encoding_key":"d67afc830dab717fd163bfcb0b8b88423e9a1a3b",
+"apdex_t":0.5,
+"episodes_file":"d1ros97qkrwjf5.cloudfront.net\/42\/eum\/rum.js",
+"trusted_account_ids":[142416]
+,"beacon":"beacon-1.newrelic.com",
+"application_id":"1783720"}
+*/
 type AgentSettings struct {
 	StartupTimeout       float32     `json:"startup_timeout"`
 	EncodingKey          string      `json:"encoding_key"`
@@ -208,3 +257,24 @@ func NewAgentSettings() *AgentSettings {
 	}
 	return s
 }
+
+
+func (agent *AgentSettings) ApplyConfigFromServer(serverConfig map[string]interface{}) {
+    agentType := reflect.TypeOf(*agent)
+    agentValue := reflect.ValueOf(agent)
+
+    for i := 0; i < agentType.NumField(); i++ {
+        field := agentType.Field(i)
+        if v, ok := serverConfig[field.Name]; ok {
+            fieldValue := agentValue.Field(i)
+            newFieldValue := reflect.ValueOf(v)
+
+            if fieldValue.CanSet() && newFieldValue.Type().AssignableTo(field.Type) {
+                fieldValue.Set(newFieldValue)
+            }            
+        }
+    }    
+}
+
+
+

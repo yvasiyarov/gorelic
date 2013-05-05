@@ -103,19 +103,17 @@ func (packet *Packet) GetResponse() (interface{}, error) {
 	}
 	var result interface{}
 	err := json.Unmarshal(packet.rawResponse, &result)
-    if err != nil {
-        return nil, err
-    }
-    if resultMap, ok := result.(map[string]interface{}); ok {
-        if returnValue, ok := resultMap["return_value"]; ok {
-            return returnValue, nil
-        } else {
-            err = errors.New("Can not get return value")
-        }
-    } else {
-        err = errors.New("Can not convert response to map[string]interface{}.")
-    }
+	if err != nil {
+		return nil, err
+	}
+	if resultMap, ok := result.(map[string]interface{}); ok {
+		if returnValue, ok := resultMap["return_value"]; ok {
+			return returnValue, nil
+		} else {
+			err = errors.New("Can not get return value")
+		}
+	} else {
+		err = errors.New("Can not convert response to map[string]interface{}.")
+	}
 	return nil, err
 }
-
-

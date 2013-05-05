@@ -21,7 +21,7 @@ func TestConnect(t *testing.T) {
 	jsonParams := []*Agent{agent}
 	packet := NewPacketConnect("http://collector-6.newrelic.com", jsonParams)
 	if err := packet.Send(); err != nil {
-		t.Errorf("Can not send get redirect host packet: %#v \n", err)
+		t.Errorf("Can not send connect packet: %#v \n", err)
 	} else {
 		resp, err := packet.GetResponse()
 		fmt.Printf("Got response: %#v \nerror: %v\n", resp, err)

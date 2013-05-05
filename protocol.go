@@ -27,6 +27,9 @@ type Packet struct {
 	jsonParams   JsonParams
 }
 
+type ResponseJson map[string]interface{}
+type ResponseConfig map[string]AgentSettings
+
 func NewPacket() *Packet {
 	p := &Packet{
 		params: url.Values{},
@@ -101,19 +104,53 @@ func (packet *Packet) GetResponse() (interface{}, error) {
 	if packet.responseCode != 200 {
 		return nil, errors.New(string(packet.rawResponse))
 	}
-	var result interface{}
+	var result ResponseJson
 	err := json.Unmarshal(packet.rawResponse, &result)
 	if err != nil {
 		return nil, err
 	}
-	if resultMap, ok := result.(map[string]interface{}); ok {
-		if returnValue, ok := resultMap["return_value"]; ok {
-			return returnValue, nil
-		} else {
-			err = errors.New("Can not get return value")
-		}
+	if returnValue, ok := result["return_value"]; ok {
+		return returnValue, nil
 	} else {
-		err = errors.New("Can not convert response to map[string]interface{}.")
+		err = errors.New("Can not get return value")
+	}
+	return nil, err
+}
+func (packet *Packet) GetResponseConfig() (*AgentSettings, error) {
+	if packet.responseCode != 200 {
+		return nil, errors.New(string(packet.rawResponse))
+	}
+	var result ResponseConfig
+
+	err := json.Unmarshal(packet.rawResponse, &result)
+	if err != nil {
+		return nil, err
+	}
+	if returnValue, ok := result["return_value"]; ok {
+		return &returnValue, nil
+	} else {
+		err = errors.New("Can not get return value")
+	}
+	return nil, err
+}
+
+//This method make one extra memory allocation, it should not be used
+func (packet *Packet) GetResponseTyped(resultValue interface{}) (interface{}, error) {
+	if packet.responseCode != 200 {
+		return nil, errors.New(string(packet.rawResponse))
+	}
+
+	result := make(ResponseJson, 1)
+	result["return_value"] = resultValue
+
+	err := json.Unmarshal(packet.rawResponse, &result)
+	if err != nil {
+		return nil, err
+	}
+	if returnValue, ok := result["return_value"]; ok {
+		return returnValue, nil
+	} else {
+		err = errors.New("Can not get return value")
 	}
 	return nil, err
 }

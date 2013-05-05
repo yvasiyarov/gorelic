@@ -3,7 +3,7 @@ package gorelic
 import (
 	//	"encoding/json"
 	//	"errors"
-	//	"fmt"
+	"fmt"
 	//	"io/ioutil"
 	//	"net/http"
 	//	"net/url"
@@ -70,7 +70,7 @@ type AgentSettings struct {
 	DataReportPeriod     int               `json:"data_report_period"`
 	EncodingKey          string            `json:"encoding_key"`
 	EpisodesFile         string            `json:"episodes_file"`
-	ApplicationId        int               `json:"application_id"`
+	ApplicationId        string            `json:"application_id"`
 	CaptureParams        bool              `json:"capture_params"`
 	ProxyPort            int               `json:"proxy_port"`
 	IncludeEnviron       []string          `json:"include_environ"`
@@ -96,7 +96,7 @@ type AgentSettings struct {
 	CollectTraces        bool              `json:"collect_traces"`
 	CrossProcessEnabled  bool              `json:"cross_process.enabled"`
 	CaptureEnviron       bool              `json:"capture_environ"`
-	CrossProcessId       int               `json:"cross_process_id"`
+	CrossProcessId       string            `json:"cross_process_id"`
 	LogFile              string            `json:"log_file"`
 	ConfigFile           string            `json:"config_file"`
 	MonitorMode          bool              `json:"monitor_mode"`
@@ -152,6 +152,21 @@ type AgentSettings struct {
 	DebugLogRawMetricData           bool     `json:"debug.log_raw_metric_data"`
 	DebugLogAgentInitialization     bool     `json:"debug.log_agent_initialization"`
 	DebugLogDataCollectorCalls      bool     `json:"debug.log_data_collector_calls"`
+}
+
+type SettingsUrlRule struct {
+	Ignore          bool   `json:"ignore"`
+	Replacement     string `json:"replacement"`
+	ReplaceAll      bool   `json:"replace_all"`
+	EachSegment     bool   `json:"each_segment"`
+	TerminateChain  bool   `json:"terminate_chain"`
+	EvalOrder       int    `json:"eval_order"`
+	MatchExpression string `json:"match_expression"`
+}
+
+type SettingsMessage struct {
+	Message string `json:"message"`
+	Level   string `json:"level"`
 }
 
 func NewAgentSettings() *AgentSettings {
@@ -215,25 +230,27 @@ func NewAgentSettings() *AgentSettings {
 	return s
 }
 
-type SettingsUrlRule struct {
-	Ignore          bool   `json:"ignore"`
-	Replacement     string `json:"replacement"`
-	ReplaceAll      bool   `json:"replace_all"`
-	EachSegment     bool   `json:"each_segment"`
-	TerminateChain  bool   `json:"terminate_chain"`
-	EvalOrder       int    `json:"eval_order"`
-	MatchExpression string `json:"match_expression"`
+func (agentSettings *AgentSettings) ApplyConfigFromServer(serverConfig *AgentSettings) {
+	agentSettingsType := reflect.TypeOf(*agentSettings)
+	agentSettingsValue := reflect.Indirect(reflect.ValueOf(agentSettings))
+	newAgentSettingsValue := reflect.Indirect(reflect.ValueOf(serverConfig))
+	for i := 0; i < agentSettingsType.NumField(); i++ {
+		fieldType := agentSettingsType.Field(i)
+		fieldValue := agentSettingsValue.Field(i)
+		newFieldValue := newAgentSettingsValue.Field(i)
+
+		if fieldValue.CanSet() && newFieldValue.Type().AssignableTo(fieldType.Type) {
+			fieldValue.Set(newFieldValue)
+		} else {
+			fmt.Printf("Can not set field %s \n", fieldType.Name)
+		}
+	}
 }
 
-type SettingsMessage struct {
-	Message string `json:"message"`
-	Level   string `json:"level"`
-}
-
-func (agent *AgentSettings) ApplyConfigFromServer(serverConfig map[string]interface{}) {
-	agentType := reflect.TypeOf(*agent)
-	agentValue := reflect.ValueOf(agent)
-
+/*
+func (agentSettings *AgentSettings) ApplyConfigFromServer(serverConfig map[string]interface{}) {
+	agentType := reflect.TypeOf(*agentSettings)
+	agentValue := reflect.Indirect(reflect.ValueOf(agentSettings))
 	for i := 0; i < agentType.NumField(); i++ {
 		field := agentType.Field(i)
 
@@ -252,7 +269,14 @@ func (agent *AgentSettings) ApplyConfigFromServer(serverConfig map[string]interf
 
 			if fieldValue.CanSet() && newFieldValue.Type().AssignableTo(field.Type) {
 				fieldValue.Set(newFieldValue)
-			}
+                fmt.Printf("Apply settings to field %s: %v \n", fieldName, v)
+			} else {
+                if field.Kind() == Int {
+                    //Convert it to int                   
+                }
+                fmt.Printf("Can not set field %s \n", fieldName)
+            }
 		}
 	}
 }
+*/

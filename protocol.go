@@ -68,13 +68,13 @@ func NewPacketConnect(url string, jsonParams JsonParams) *Packet {
 	return packet
 }
 
-func NewPacketMetricData(url string, metricData JsonParams, runId int) *Packet {
+func NewPacketMetricData(url string, jsonParams JsonParams, runId int) *Packet {
 
 	packet := NewPacket()
 	packet.params.Add("method", "metric_data")
 	packet.params.Add("run_id", strconv.Itoa(runId))
 	packet.url = url
-	packet.jsonParams = metricData
+	packet.jsonParams = jsonParams
 	return packet
 }
 

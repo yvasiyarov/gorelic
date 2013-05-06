@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+    "strconv"
 )
 
 var LicenseKey string
@@ -64,6 +65,16 @@ func NewPacketConnect(url string, jsonParams JsonParams) *Packet {
 	packet.params.Add("method", "connect")
 	packet.url = url
 	packet.jsonParams = jsonParams
+	return packet
+}
+
+func NewPacketMetricData(url string, metricData JsonParams, runId int) *Packet {
+
+	packet := NewPacket()
+	packet.params.Add("method", "metric_data")
+	packet.params.Add("run_id", strconv.Itoa(runId))
+	packet.url = url
+	packet.jsonParams = metricData
 	return packet
 }
 

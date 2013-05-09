@@ -2,7 +2,7 @@ package gorelic
 
 import (
 	//	"encoding/json"
-	//	"errors"
+	"os"
 	"fmt"
 	//	"io/ioutil"
 	//	"net/http"
@@ -10,6 +10,10 @@ import (
 	"reflect"
 )
 
+//TODO: change to "go"
+const AGENT_LANGUAGE = "python"
+const AGENT_VERSION  = "0.1.0.0"
+const AGENT_IDENTIFIER = "Go Agent Test"
 
 type Agent struct {
 	AppName      []string          `json:"app_name"`
@@ -23,13 +27,14 @@ type Agent struct {
 }
 
 func NewAgent() *Agent {
+    host, _ := os.Hostname()
 	a := &Agent{
-		AppName:      []string{"Python Agent Test"},
-		Language:     "python",
-		Identifier:   "Python Agent Test",
-		AgentVersion: "1.10.2.38",
+		AppName:      []string{"Python Agent Test"}, //TODO: take it from config file
+		Language:     AGENT_LANGUAGE,
+		Identifier:   AGENT_IDENTIFIER,
+		AgentVersion: AGENT_VERSION,
 		Environment:  NewAgentEnvironment(),
-		Host:         "web-v4.butik.ru", //replace with real host name
+		Host:         host,
 		Settings:     NewAgentSettings(),
 	}
 	return a

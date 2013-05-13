@@ -4,6 +4,51 @@ import (
     "time"
 )
 
+// {"scope": "WebTransaction/Uri/test", "name": "Function/newrelic.admin:_function3"}
+// {"scope": "WebTransaction/Uri/test", "name": "Function/newrelic.admin:_wsgi_application"},
+// {"scope": "WebTransaction/Uri/test", "name": "Function/newrelic.admin:_function1"},
+// {"scope": "WebTransaction/Uri/test", "name": "Function/newrelic.admin:_function2"},
+
+// {"scope": "", "name": "Supportability/StatsEngine/Calls/record_transaction"},
+// {"scope": "", "name": "Supportability/TransactionNode/Calls/time_metrics"},
+// {"scope": "", "name": "Supportability/TransactionNode/Calls/slow_sql_nodes"},
+// {"scope": "", "name": "Supportability/Transaction/Counts/metric_data"},
+//  {"scope": "", "name": "Supportability/TransactionNode/Calls/value_metrics"},
+// {"scope": "", "name": "Supportability/TransactionNode/Calls/apdex_metrics"},
+// {"scope": "", "name": "Supportability/TransactionNode/Calls/error_details"},
+
+// {"scope": "", "name": "External/allWeb"}
+// {"scope": "", "name": "External/localhost/all"},
+// {"scope": "", "name": "External/localhost/test/GET"}, 
+// {"scope": "WebTransaction/Uri/test", "name": "External/localhost/test/GET"},
+
+// {"scope": "", "name": "Python/WSGI/Input/Time"},
+// {"scope": "", "name": "Python/WSGI/Input/Bytes"},
+// {"scope": "", "name": "Python/WSGI/Output/Calls/yield"},
+// {"scope": "", "name": "Python/WSGI/Input/Calls/readlines"},
+// {"scope": "", "name": "Python/WSGI/Input/Calls/readline"}
+// {"scope": "", "name": "Python/WSGI/Input/Calls/read"},
+// {"scope": "", "name": "Python/WSGI/Output/Calls/write"},
+// {"scope": "", "name": "Python/WSGI/Output/Time"},
+// {"scope": "", "name": "Python/WSGI/Output/Bytes"},
+// {"scope": "WebTransaction/Uri/test", "name": "Python/WSGI/Application"},
+
+// {"scope": "", "name": "Errors/all"},
+// {"scope": "", "name": "Errors/allWeb"},
+// {"scope": "", "name": "Errors/WebTransaction/Uri/test"},
+
+// {"scope": "", "name": "WebTransaction"},
+// {"scope": "", "name": "WebTransaction/Uri/test"},
+
+// {"scope": "", "name": "CPU/User/Utilization"},
+// {"scope": "", "name": "HttpDispatcher"},
+// {"scope": "", "name": "Memory/Physical"},
+// {"scope": "", "name": "Apdex/Uri/test"},
+// {"scope": "", "name": "Instance/Reporting"},
+// {"scope": "", "name": "Apdex"},
+// {"scope": "", "name": "CPU/User Time"}
+   
+
 type StatsEngine struct{
     IsInitialized bool
 

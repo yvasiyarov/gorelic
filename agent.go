@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	//"github.com/yvasiyarov/newrelic_platform_go"
+	"github.com/yvasiyarov/newrelic_platform_go"
 	"log"
 	"math/rand"
 	"time"
@@ -42,21 +42,24 @@ func doSomeJob(numRoutines int) {
 }
 
 func main() {
-	doSomeJob(10)
-	log.Println("All routines started\n")
-	select {}
 
+	flag.Parse()
+	if *newrelicLicense == "" {
+		log.Fatalf("Please, pass a valid newrelic license key.\n Use --help to get more information about available options\n")
+	}
+
+	plugin := newrelic_platform_go.NewNewrelicPlugin(AGENT_VERSION, *newrelicLicense, NEWRELIC_POLL_INTERVAL)
+	component := newrelic_platform_go.NewPluginComponent(*newrelicName, AGENT_GUID)
+	plugin.AddComponent(component)
+
+	component.AddMetrica(&NOGoroutinesMetrica{})
+	component.AddMetrica(&NOCgoCallsMetrica{})
+
+	plugin.Verbose = *verbose
+	plugin.Run()
 	/*
-		flag.Parse()
-		if *newrelicLicense == "" {
-			log.Fatalf("Please, pass a valid newrelic license key.\n Use --help to get more information about available options\n")
-		}
-
-		plugin := newrelic_platform_go.NewNewrelicPlugin(AGENT_VERSION, *newrelicLicense, NEWRELIC_POLL_INTERVAL)
-		component := newrelic_platform_go.NewPluginComponent(*newrelicName, AGENT_GUID)
-		plugin.AddComponent(component)
-
-		plugin.Verbose = *verbose
-		plugin.Run()
+		doSomeJob(100)
+		log.Println("All routines started\n")
+		select {}
 	*/
 }

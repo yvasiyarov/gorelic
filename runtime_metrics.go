@@ -7,7 +7,7 @@ import (
 type NOGoroutinesMetrica struct{}
 
 func (metrica *NOGoroutinesMetrica) GetName() string {
-	return "Runtime/NOGoroutines"
+	return "Runtime/General/NOGoroutines"
 }
 func (metrica *NOGoroutinesMetrica) GetUnits() string {
 	return "goroutines"
@@ -21,7 +21,7 @@ type NOCgoCallsMetrica struct {
 }
 
 func (metrica *NOCgoCallsMetrica) GetName() string {
-	return "Runtime/NOCgoCalls"
+	return "Runtime/General/NOCgoCalls"
 }
 func (metrica *NOCgoCallsMetrica) GetUnits() string {
 	return "calls"

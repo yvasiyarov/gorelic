@@ -16,9 +16,9 @@ var verbose = flag.Bool("verbose", false, "Verbose mode")
 const (
 	NEWRELIC_POLL_INTERVAL = 60 //Send data to newrelic every 60 seconds
 
-	AGENT_GUID                            = "com.github.yvasiyarov.GoRelic"
-	AGENT_VERSION                         = "0.0.1"
-	GC_STAT_CAPTURING_INTERVAL_IN_SECONDS = 10
+	AGENT_GUID                  = "com.github.yvasiyarov.GoRelic"
+	AGENT_VERSION               = "0.0.1"
+	GC_POLL_INTERVAL_IN_SECONDS = 10
 )
 
 func allocateAndSum(arraySize int) int {

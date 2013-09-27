@@ -14,11 +14,17 @@ var newrelicLicense = flag.String("newrelic-license", "", "Newrelic license")
 var verbose = flag.Bool("verbose", false, "Verbose mode")
 
 const (
-	NEWRELIC_POLL_INTERVAL = 60 //Send data to newrelic every 60 seconds
-
-	AGENT_GUID                  = "com.github.yvasiyarov.GoRelic"
-	AGENT_VERSION               = "0.0.1"
+	// Send data to newrelic every 60 seconds
+	NEWRELIC_POLL_INTERVAL = 60
+	// Get garbage collector run statistic every 10 seconds
+	// During GC stat pooling - mheap will be locked, so be carefull changing this value
 	GC_POLL_INTERVAL_IN_SECONDS = 10
+	// Get memory allocator statistic every 60 seconds
+	// During this process stoptheword() is called, so be carefull changing this value
+	MEMORY_ALLOCATOR_POLL_INTERVAL_IN_SECONDS = 60
+
+	AGENT_GUID    = "com.github.yvasiyarov.GoRelic"
+	AGENT_VERSION = "0.0.1"
 )
 
 func allocateAndSum(arraySize int) int {
@@ -56,6 +62,7 @@ func main() {
 	component.AddMetrica(&NOGoroutinesMetrica{})
 	component.AddMetrica(&NOCgoCallsMetrica{})
 	addGCMericsToComponent(component)
+	addMemoryMericsToComponent(component)
 
 	plugin.Verbose = *verbose
 	plugin.Run()

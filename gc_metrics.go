@@ -1,4 +1,4 @@
-package main
+package gorelic
 
 import (
 	metrics "github.com/yvasiyarov/go-metrics"
@@ -6,16 +6,15 @@ import (
 	"time"
 )
 
-func NewGCMetricaDataSource() GoMetricaDataSource {
+func NewGCMetricaDataSource(pollInterval int) GoMetricaDataSource {
 	r := metrics.NewRegistry()
 
 	metrics.RegisterDebugGCStats(r)
-	go metrics.CaptureDebugGCStats(r, time.Duration(GC_POLL_INTERVAL_IN_SECONDS)*time.Second)
+	go metrics.CaptureDebugGCStats(r, time.Duration(pollInterval)*time.Second)
 	return GoMetricaDataSource{r}
 }
 
-
-func addGCMericsToComponent(component newrelic_platform_go.IComponent) {
+func addGCMericsToComponent(component newrelic_platform_go.IComponent, pollInterval int) {
 	metrics := []*BaseGoMetrica{
 		&BaseGoMetrica{
 			name:          "NumberOfGCCalls",
@@ -29,7 +28,7 @@ func addGCMericsToComponent(component newrelic_platform_go.IComponent) {
 		},
 	}
 
-	ds := NewGCMetricaDataSource()
+	ds := NewGCMetricaDataSource(pollInterval)
 	for _, m := range metrics {
 		m.basePath = "Runtime/GC/"
 		m.dataSource = ds
@@ -39,27 +38,27 @@ func addGCMericsToComponent(component newrelic_platform_go.IComponent) {
 	histogramMetrics := []*HistogramMetrica{
 		&HistogramMetrica{
 			statFunction:  HISTOGRAM_MAX,
-            BaseGoMetrica: &BaseGoMetrica{name: "Max"},
+			BaseGoMetrica: &BaseGoMetrica{name: "Max"},
 		},
 		&HistogramMetrica{
 			statFunction:  HISTOGRAM_MIN,
-            BaseGoMetrica: &BaseGoMetrica{name: "Min"},
+			BaseGoMetrica: &BaseGoMetrica{name: "Min"},
 		},
 		&HistogramMetrica{
 			statFunction:  HISTOGRAM_MEAN,
-            BaseGoMetrica: &BaseGoMetrica{name: "Mean"},
+			BaseGoMetrica: &BaseGoMetrica{name: "Mean"},
 		},
 		&HistogramMetrica{
-			statFunction:  HISTOGRAM_PERCENTILE,
-            percentileValue: 0.95,
-            BaseGoMetrica: &BaseGoMetrica{name: "Percentile95"},
+			statFunction:    HISTOGRAM_PERCENTILE,
+			percentileValue: 0.95,
+			BaseGoMetrica:   &BaseGoMetrica{name: "Percentile95"},
 		},
 	}
 	for _, m := range histogramMetrics {
-        m.BaseGoMetrica.units = "nanoseconds"
-        m.BaseGoMetrica.dataSourceKey = "debug.GCStats.Pause"
-        m.BaseGoMetrica.basePath = "Runtime/GC/GCTime/"
-        m.BaseGoMetrica.dataSource =  ds
+		m.BaseGoMetrica.units = "nanoseconds"
+		m.BaseGoMetrica.dataSourceKey = "debug.GCStats.Pause"
+		m.BaseGoMetrica.basePath = "Runtime/GC/GCTime/"
+		m.BaseGoMetrica.dataSource = ds
 
 		component.AddMetrica(m)
 	}

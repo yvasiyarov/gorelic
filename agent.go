@@ -1,17 +1,10 @@
-package main
+package gorelic
 
 import (
-	"flag"
+	"fmt"
 	"github.com/yvasiyarov/newrelic_platform_go"
 	"log"
-	"math/rand"
-	"time"
 )
-
-var newrelicName = flag.String("newrelic-name", "Go daemon", "Component name in New Relic")
-var newrelicLicense = flag.String("newrelic-license", "", "Newrelic license")
-
-var verbose = flag.Bool("verbose", false, "Verbose mode")
 
 const (
 	// Send data to newrelic every 60 seconds
@@ -25,50 +18,64 @@ const (
 
 	AGENT_GUID    = "com.github.yvasiyarov.GoRelic"
 	AGENT_VERSION = "0.0.1"
+	AGENT_NAME    = "Go daemon"
 )
 
-func allocateAndSum(arraySize int) int {
-	arr := make([]int, arraySize, arraySize)
-	for i, _ := range arr {
-		arr[i] = rand.Int()
-	}
-	time.Sleep(time.Duration(rand.Intn(3000)) * time.Millisecond)
-
-	result := 0
-	for _, v := range arr {
-		result += v
-	}
-	log.Printf("Array size is: %d, sum is: %d\n", arraySize, result)
-	return result
+type Agent struct {
+	NewrelicName                string
+	NewrelicLicense             string
+	NewrelicPollInterval        int
+	Verbose                     bool
+	CollectGcStat               bool
+	CollectMemoryStat           bool
+	GCPollInterval              int
+	MemoryAllocatorPollInterval int
+	AgentGUID                   string
+	AgentVersion                string
+	plugin                      newrelic_platform_go.NewrelicPlugin
 }
 
-func doSomeJob(numRoutines int) {
-	for i := 0; i < numRoutines; i++ {
-		go allocateAndSum(rand.Intn(1024) * 1024)
+func NewAgent() {
+	agent := &Agent{
+		NewrelicName:                AGENT_NAME,
+		NewrelicPollInterval:        NEWRELIC_POLL_INTERVAL,
+		Verbose:                     false,
+		CollectGcStat:               true,
+		CollectMemoryStat:           true,
+		GCPollInterval:              GC_POLL_INTERVAL_IN_SECONDS,
+		MemoryAllocatorPollInterval: MEMORY_ALLOCATOR_POLL_INTERVAL_IN_SECONDS,
+		AgentGUID:                   AGENT_GUID,
+		AgentVersion:                AGENT_VERSION,
 	}
+	return agent
 }
 
-func main() {
-
-	flag.Parse()
-	if *newrelicLicense == "" {
-		log.Fatalf("Please, pass a valid newrelic license key.\n Use --help to get more information about available options\n")
+func (agent *Agent) Run() {
+	if agent.NewrelicLicense == "" {
+		log.Fatalf("Please, pass a valid newrelic license key.")
 	}
 
-	plugin := newrelic_platform_go.NewNewrelicPlugin(AGENT_VERSION, *newrelicLicense, NEWRELIC_POLL_INTERVAL)
-	component := newrelic_platform_go.NewPluginComponent(*newrelicName, AGENT_GUID)
-	plugin.AddComponent(component)
+	agent.plugin = newrelic_platform_go.NewNewrelicPlugin(agent.AgentVersion, agent.NewrelicLicense, agent.NewrelicPollInterval)
+	component := newrelic_platform_go.NewPluginComponent(agent.NewrelicName, agent.AgentGUID)
+	agent.plugin.AddComponent(component)
 
 	component.AddMetrica(&NOGoroutinesMetrica{})
 	component.AddMetrica(&NOCgoCallsMetrica{})
-	addGCMericsToComponent(component)
-	addMemoryMericsToComponent(component)
+	if agent.CollectGcStat {
+		addGCMericsToComponent(component, agent.GCPollInterval)
+		agent.Debug(fmt.Printf("Init GC metrics collection. Poll interval %d seconds.", agent.GCPollInterval))
+	}
+	if agent.CollectMemoryStat {
+		addMemoryMericsToComponent(component, agent.MemoryAllocatorPollInterval)
+		agent.Debug(fmt.Printf("Init memory allocator metrics collection. Poll interval %d seconds.", agent.MemoryAllocatorPollInterval))
+	}
 
-	plugin.Verbose = *verbose
-	plugin.Run()
-	/*
-		doSomeJob(100)
-		log.Println("All routines started\n")
-		select {}
-	*/
+	agent.plugin.Verbose = agent.Verbose
+	agent.plugin.Run()
+}
+
+func (agent *Agent) Debug(msg string) {
+	if agent.Verbose {
+		log.Println(msg)
+	}
 }

@@ -32,10 +32,10 @@ type Agent struct {
 	MemoryAllocatorPollInterval int
 	AgentGUID                   string
 	AgentVersion                string
-	plugin                      newrelic_platform_go.NewrelicPlugin
+	plugin                      *newrelic_platform_go.NewrelicPlugin
 }
 
-func NewAgent() {
+func NewAgent() *Agent {
 	agent := &Agent{
 		NewrelicName:                AGENT_NAME,
 		NewrelicPollInterval:        NEWRELIC_POLL_INTERVAL,
@@ -63,15 +63,15 @@ func (agent *Agent) Run() {
 	component.AddMetrica(&NOCgoCallsMetrica{})
 	if agent.CollectGcStat {
 		addGCMericsToComponent(component, agent.GCPollInterval)
-		agent.Debug(fmt.Printf("Init GC metrics collection. Poll interval %d seconds.", agent.GCPollInterval))
+		agent.Debug(fmt.Sprintf("Init GC metrics collection. Poll interval %d seconds.", agent.GCPollInterval))
 	}
 	if agent.CollectMemoryStat {
 		addMemoryMericsToComponent(component, agent.MemoryAllocatorPollInterval)
-		agent.Debug(fmt.Printf("Init memory allocator metrics collection. Poll interval %d seconds.", agent.MemoryAllocatorPollInterval))
+		agent.Debug(fmt.Sprintf("Init memory allocator metrics collection. Poll interval %d seconds.", agent.MemoryAllocatorPollInterval))
 	}
 
 	agent.plugin.Verbose = agent.Verbose
-	agent.plugin.Run()
+	go agent.plugin.Run()
 }
 
 func (agent *Agent) Debug(msg string) {

@@ -16,7 +16,7 @@ const (
 )
 
 type GoMetricaDataSource struct {
-	*metrics.StandardRegistry
+	metrics.Registry
 }
 
 func (ds GoMetricaDataSource) GetGaugeValue(key string) (float64, error) {

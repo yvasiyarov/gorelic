@@ -3,6 +3,10 @@ package main
 import (
 	"flag"
 	"github.com/yvasiyarov/gorelic"
+    "math/rand"
+    "time"
+    "log"
+    "runtime"
 )
 
 var newrelicLicense = flag.String("newrelic-license", "", "Newrelic license")
@@ -18,14 +22,19 @@ func allocateAndSum(arraySize int) int {
 	for _, v := range arr {
 		result += v
 	}
-	log.Printf("Array size is: %d, sum is: %d\n", arraySize, result)
+	//log.Printf("Array size is: %d, sum is: %d\n", arraySize, result)
 	return result
 }
 
 func doSomeJob(numRoutines int) {
-	for i := 0; i < numRoutines; i++ {
-		go allocateAndSum(rand.Intn(1024) * 1024)
-	}
+    for ;; {
+	    for i := 0; i < numRoutines; i++ {
+		    go allocateAndSum(rand.Intn(1024) * 1024)
+	    }
+        log.Printf("All %d routines started\n", numRoutines)
+        time.Sleep(1000 * time.Millisecond)
+        runtime.GC()
+    }
 }
 
 func main() {
@@ -39,9 +48,5 @@ func main() {
 	agent.NewrelicLicense = *newrelicLicense
 	agent.Run()
 
-	/*
-		doSomeJob(100)
-		log.Println("All routines started\n")
-		select {}
-	*/
+    doSomeJob(100)
 }

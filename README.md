@@ -30,7 +30,15 @@ agent.Run()
 
 ```
 
-
+### Configuration  
+- NewrelicLicense - its the only mandatory setting of this agent.
+- NewrelicName - component name in NewRelic dashboard. Default value: "Go daemon"
+- NewrelicPollInterval - how often metrics will be sent to NewRelic. Default value: 60 seconds
+- Verbose - print some usefull for debugging information. Default value: false
+- CollectGcStat - should agent collect garbage collector statistic or not. Default value: true
+- CollectMemoryStat - should agent collect memory allocator statistic or not. Default value: true
+- GCPollInterval - how often should GC statistic collected. Default value: 10 seconds. It has performance impact. For more information, please, read metrics description.
+- MemoryAllocatorPollInterval - how often should memory allocator statistic collected. Default value: 60 seconds. It has performance impact. For more information, please, read metrics description.
 
 
 ### Metrics reported by plugin

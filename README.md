@@ -1,8 +1,35 @@
-# gorelic
+# GoRelic
 
-New Relic agent for Go lang
+New Relic agent for Go runtime. It collect a lot of metrics about scheduler, garbage collector and memory allocator and 
+send them to NewRelic.
 
-Development started again from scratch
+### Requirements  
+- Go 1.1 or higher
+- github.com/yvasiyarov/gorelic
+- github.com/yvasiyarov/newrelic_platform_go
+- github.com/yvasiyarov/go-metrics
+
+You have to install manually only first two dependencies. All other dependencies will be installed automatically 
+by Go toolchain.   
+
+### Installation   
+```bash
+go get github.com/yvasiyarov/gorelic
+```
+and add to the initialization part of your application following code:  
+```go
+import (
+    "github.com/yvasiyarov/gorelic"
+)
+....
+
+agent := gorelic.NewAgent()
+agent.Verbose = true
+agent.NewrelicLicense = "YOUR NEWRELIC LICENSE KEY THERE"
+agent.Run()
+
+```
+
 
 
 

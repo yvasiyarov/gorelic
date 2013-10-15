@@ -37,33 +37,51 @@ agent.Run()
 - Verbose - print some usefull for debugging information. Default value: false
 - CollectGcStat - should agent collect garbage collector statistic or not. Default value: true
 - CollectMemoryStat - should agent collect memory allocator statistic or not. Default value: true
-- GCPollInterval - how often should GC statistic collected. Default value: 10 seconds. It has performance impact. For more information, please, read metrics description.
-- MemoryAllocatorPollInterval - how often should memory allocator statistic collected. Default value: 60 seconds. It has performance impact. For more information, please, read metrics description.
+- GCPollInterval - how often should GC statistic collected. Default value: 10 seconds. It has performance impact. For more information, please, see metrics documentation.
+- MemoryAllocatorPollInterval - how often should memory allocator statistic collected. Default value: 60 seconds. It has performance impact. For more information, please, read metrics documentation.
 
 
-### Metrics reported by plugin
-1. Runtime/General/NOGoroutines - number of runned go routines, as it reported by NumGoroutine() from runtime package
-2. Runtime/General/NOCgoCalls - number of runned cgo calls, as it reported by NumCgoCall() from runtime package
+## Metrics reported by plugin
+This agent use functions exposed by runtime or runtime/debug packages to collect most important information about Go runtime.
 
-3. Runtime/GC/NumberOfGCCalls - Nuber of GC calls, as it reported by ReadGCStats() from runtime/debug 
-4. Runtime/GC/PauseTotalTime - Total pause time diring GC calls, as it reported by ReadGCStats() from runtime/debug (in nanoseconds)
+### General metrics   
+- Runtime/General/NOGoroutines - number of runned go routines, as it reported by NumGoroutine() from runtime package
+- Runtime/General/NOCgoCalls - number of runned cgo calls, as it reported by NumCgoCall() from runtime package
 
-5. Runtime/GC/GCTime/Max - max GC time
-6. Runtime/GC/GCTime/Min - min GC time
-7. Runtime/GC/GCTime/Mean - GC mean time
-8. Runtime/GC/GCTime/Percentile95 - 95% percentile of GC time
+### Garbage collector metrics      
+- Runtime/GC/NumberOfGCCalls - Nuber of GC calls, as it reported by ReadGCStats() from runtime/debug 
+- Runtime/GC/PauseTotalTime - Total pause time diring GC calls, as it reported by ReadGCStats() from runtime/debug (in nanoseconds)
+- Runtime/GC/GCTime/Max - max GC time
+- Runtime/GC/GCTime/Min - min GC time
+- Runtime/GC/GCTime/Mean - GC mean time
+- Runtime/GC/GCTime/Percentile95 - 95% percentile of GC time
 
-Metrics 5-8 are measured in nanoseconds, and they can be inaccurate if GC called more often then once in GC_POLL_INTERVAL_IN_SECONDS. 
-If in your workload GC is called more often - you can consider decreasing value of this constant. But ReadGCStats() blocks mheap, so its not good idea to call it very often.
+All this metrics are measured in nanoseconds. Last 4 of them can be inaccurate if GC called more often then once in GCPollInterval. 
+If in your workload GC is called more often - you can consider decreasing value of GCPollInterval. 
+But be carefull, ReadGCStats() blocks mheap, so its not good idea to set GCPollInterval to very low values.
 
+### Memory allocator 
+- Component/Runtime/Memory/SysMem/Total - number of bytes/minute allocated from OS totally. 
+- Component/Runtime/Memory/SysMem/Stack - number of bytes/minute allocated from OS for stacks.
+- Component/Runtime/Memory/SysMem/MSpan - number of bytes/minute allocated from OS for internal MSpan structs.
+- Component/Runtime/Memory/SysMem/MCache - number of bytes/minute allocated from OS for internal MCache structs.
+- Component/Runtime/Memory/SysMem/Heap - number of bytes/minute allocated from OS for heap.
+- Component/Runtime/Memory/SysMem/BuckHash - number of bytes/minute allocated from OS for internal BuckHash structs.
+- Component/Runtime/Memory/Operations/NoFrees - number of memory frees per minute
+- Component/Runtime/Memory/Operations/NoMallocs - number of memory allocations per minute
+- Component/Runtime/Memory/Operations/NoPointerLookups - number of pointer lookups per minute
+- Component/Runtime/Memory/InUse/Total - total amount of memory in use
+- Component/Runtime/Memory/InUse/Heap - amount of memory in use for heap
+- Component/Runtime/Memory/InUse/MCacheInuse - amount of memory in use for MCache internal structures
+- Component/Runtime/Memory/InUse/MSpanInuse - amount of memory in use for MSpan internal structures  
+- Component/Runtime/Memory/InUse/Stack - amount of memory in use for stacks
 
-ReadMemStats() - call stoptheworld() and block everything
-TODO:
-Alloc      uint64 // bytes allocated and still in use
-Sys        uint64 // bytes obtained from system
+All this metrics collected once in MemoryAllocatorPollInterval. In order to collect this statistic agent use ReadMemStats() routine.
+This routine calls stoptheworld() internally and it block everything. So, please, consider this when you change MemoryAllocatorPollInterval value.
 
-Lookups    uint64 // number of pointer lookups
-
-Mallocs    uint64 // number of mallocs
-Frees      uint64 // number of frees
+## TODO
+- Collect more CPU metrics
+- Collect per-size allocation statistic
+- Collect user defined metrics
+- Monkey-patching for web applications
 

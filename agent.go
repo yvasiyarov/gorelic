@@ -59,8 +59,8 @@ func (agent *Agent) Run() {
 	component := newrelic_platform_go.NewPluginComponent(agent.NewrelicName, agent.AgentGUID)
 	agent.plugin.AddComponent(component)
 
-	component.AddMetrica(&NOGoroutinesMetrica{})
-	component.AddMetrica(&NOCgoCallsMetrica{})
+	addRuntimeMericsToComponent(component)
+
 	if agent.CollectGcStat {
 		addGCMericsToComponent(component, agent.GCPollInterval)
 		agent.Debug(fmt.Sprintf("Init GC metrics collection. Poll interval %d seconds.", agent.GCPollInterval))

@@ -76,6 +76,14 @@ But be carefull, ReadGCStats() blocks mheap, so its not good idea to set GCPollI
 - Component/Runtime/Memory/InUse/MSpanInuse - amount of memory in use for MSpan internal structures  
 - Component/Runtime/Memory/InUse/Stack - amount of memory in use for stacks
 
+### Process metrics
+- Component/Runtime/System/Threads - number of OS threads used
+- Runtime/System/FDSize - number of file descriptors, used by process
+- Runtime/System/Memory/VmPeakSize - VM max size
+- Runtime/System/Memory/VmCurrent  - VM current size
+- Runtime/System/Memory/RssPeak    - max size of resident memory set
+- Runtime/System/Memory/RssCurrent - current size of resident memory set   
+
 All this metrics collected once in MemoryAllocatorPollInterval. In order to collect this statistic agent use ReadMemStats() routine.
 This routine calls stoptheworld() internally and it block everything. So, please, consider this when you change MemoryAllocatorPollInterval value.
 

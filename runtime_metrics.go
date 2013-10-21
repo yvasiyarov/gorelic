@@ -98,6 +98,7 @@ func (ds *LinuxSystemMetricaDataSource) checkAndUpdateData() error {
 		}
 
 		lines := strings.Split(string(rawStats), "\n")
+        fmt.Printf("PROC:%#v", lines)
 		for _, line := range lines {
 			parts := strings.Split(line, ":")
 			if len(parts) == 2 {
@@ -107,7 +108,6 @@ func (ds *LinuxSystemMetricaDataSource) checkAndUpdateData() error {
 				ds.systemData[k] = v
 			}
 		}
-        fmt.Printf("Data: %#v", ds.systemData)
 		ds.lastUpdate = startTime
 	}
 	return nil

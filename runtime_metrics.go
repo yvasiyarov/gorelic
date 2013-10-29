@@ -82,6 +82,24 @@ func (ds *LinuxSystemMetricaDataSource) GetValue(key string) (float64, error) {
 		return 0, err
 	} else if val, ok := ds.systemData[key]; !ok {
 		return 0, fmt.Errorf("System data with key %s was not found.", key)
+	} else if key == "VmSize" || key == "VmPeak" || key == "VmHWM" || key == "VmRSS" {
+		valueParts := strings.Split(val, " ")
+		if len(valueParts) != 2 {
+			return 0, fmt.Errorf("Invalid format for value %s", key)
+		}
+		valConverted, err := strconv.ParseFloat(valueParts[0], 64)
+		if err != nil {
+			return 0, err
+		}
+		switch valueParts[1] {
+		case "kB":
+			valConverted *= 1 << 10
+		case "mB":
+			valConverted *= 1 << 20
+		case "gB":
+			valConverted *= 1 << 30
+		}
+		return valConverted, nil
 	} else if valConverted, err := strconv.ParseFloat(val, 64); err != nil {
 		return valConverted, nil
 	} else {
@@ -98,7 +116,6 @@ func (ds *LinuxSystemMetricaDataSource) checkAndUpdateData() error {
 		}
 
 		lines := strings.Split(string(rawStats), "\n")
-        fmt.Printf("PROC:%#v", lines)
 		for _, line := range lines {
 			parts := strings.Split(line, ":")
 			if len(parts) == 2 {

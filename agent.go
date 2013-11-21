@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/yvasiyarov/newrelic_platform_go"
 	"log"
+	"errors"
 )
 
 const (
@@ -50,10 +51,9 @@ func NewAgent() *Agent {
 	return agent
 }
 
-func (agent *Agent) Run() {
+func (agent *Agent) Run() error {
 	if agent.NewrelicLicense == "" {
-		log.Print("Please, pass a valid newrelic license key.")
-		return
+		return errors.New("Please, pass a valid newrelic license key.")
 	}
 
 	agent.plugin = newrelic_platform_go.NewNewrelicPlugin(agent.AgentVersion, agent.NewrelicLicense, agent.NewrelicPollInterval)
@@ -73,6 +73,7 @@ func (agent *Agent) Run() {
 
 	agent.plugin.Verbose = agent.Verbose
 	go agent.plugin.Run()
+	return nil
 }
 
 func (agent *Agent) Debug(msg string) {

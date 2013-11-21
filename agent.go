@@ -52,7 +52,8 @@ func NewAgent() *Agent {
 
 func (agent *Agent) Run() {
 	if agent.NewrelicLicense == "" {
-		log.Fatalf("Please, pass a valid newrelic license key.")
+		log.Print("Please, pass a valid newrelic license key.")
+		return
 	}
 
 	agent.plugin = newrelic_platform_go.NewNewrelicPlugin(agent.AgentVersion, agent.NewrelicLicense, agent.NewrelicPollInterval)

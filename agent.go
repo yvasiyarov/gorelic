@@ -18,7 +18,7 @@ const (
 	MEMORY_ALLOCATOR_POLL_INTERVAL_IN_SECONDS = 60
 
 	AGENT_GUID    = "com.github.yvasiyarov.GoRelic"
-	AGENT_VERSION = "0.0.2"
+	AGENT_VERSION = "0.0.4"
 	AGENT_NAME    = "Go daemon"
 )
 

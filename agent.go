@@ -55,7 +55,16 @@ func NewAgent() *Agent {
 	return agent
 }
 
+func (agent *Agent) initTimer() {
+	if agent.HttpTimer == nil {
+		agent.HttpTimer = metrics.NewTimer()
+	}
+
+	agent.CollectHttpStat = true
+}
+
 func (agent *Agent) WrapHttpHandlerFunc(h THttpHandlerFunc) THttpHandlerFunc {
+	agent.initTimer()
 	return func(w http.ResponseWriter, req *http.Request) {
 		proxy := NewHttpHandlerFunc(h)
 		proxy.timer = agent.HttpTimer
@@ -64,6 +73,8 @@ func (agent *Agent) WrapHttpHandlerFunc(h THttpHandlerFunc) THttpHandlerFunc {
 }
 
 func (agent *Agent) WrapHttpHandler(h http.Handler) http.Handler {
+	agent.initTimer()
+
 	proxy := NewHttpHandler(h)
 	proxy.timer = agent.HttpTimer
 	return proxy
@@ -90,7 +101,7 @@ func (agent *Agent) Run() error {
 	}
 
 	if agent.CollectHttpStat {
-		agent.HttpTimer = metrics.NewTimer()
+		agent.initTimer()
 		addHttpMericsToComponent(component, agent.HttpTimer)
 		agent.Debug(fmt.Sprintf("Init HTTP metrics collection."))
 	}

@@ -1,2 +1,4 @@
 *.nut
+*.swp
 examples/examples
+examples/example_web

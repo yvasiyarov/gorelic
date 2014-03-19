@@ -130,7 +130,7 @@ func (ds *LinuxSystemMetricaDataSource) checkAndUpdateData() error {
 	return nil
 }
 
-// OS specific metrica 
+// OS specific metrica
 type SystemMetrica struct {
 	sourceKey    string
 	newrelicName string

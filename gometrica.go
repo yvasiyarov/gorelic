@@ -102,3 +102,81 @@ type HistogramMetrica struct {
 func (metrica *HistogramMetrica) GetValue() (float64, error) {
 	return metrica.dataSource.GetHistogramValue(metrica.dataSourceKey, metrica.statFunction, metrica.percentileValue)
 }
+
+type BaseTimerMetrica struct {
+	dataSource metrics.Timer
+	name       string
+	units      string
+}
+
+func (metrica *BaseTimerMetrica) GetName() string {
+	return metrica.name
+}
+
+func (metrica *BaseTimerMetrica) GetUnits() string {
+	return metrica.units
+}
+
+type TimerRate1Metrica struct {
+	*BaseTimerMetrica
+}
+
+func (metrica *TimerRate1Metrica) GetValue() (float64, error) {
+	return metrica.dataSource.Rate1(), nil
+}
+
+type TimerRateMeanMetrica struct {
+	*BaseTimerMetrica
+}
+
+func (metrica *TimerRateMeanMetrica) GetValue() (float64, error) {
+	return metrica.dataSource.RateMean(), nil
+}
+
+type TimerMeanMetrica struct {
+	*BaseTimerMetrica
+}
+
+func (metrica *TimerMeanMetrica) GetValue() (float64, error) {
+	return metrica.dataSource.Mean(), nil
+}
+
+type TimerMinMetrica struct {
+	*BaseTimerMetrica
+}
+
+func (metrica *TimerMinMetrica) GetValue() (float64, error) {
+	return float64(metrica.dataSource.Min()), nil
+}
+
+type TimerMaxMetrica struct {
+	*BaseTimerMetrica
+}
+
+func (metrica *TimerMaxMetrica) GetValue() (float64, error) {
+	return float64(metrica.dataSource.Max()), nil
+}
+
+type TimerPercentile75Metrica struct {
+	*BaseTimerMetrica
+}
+
+func (metrica *TimerPercentile75Metrica) GetValue() (float64, error) {
+	return metrica.dataSource.Percentile(75), nil
+}
+
+type TimerPercentile90Metrica struct {
+	*BaseTimerMetrica
+}
+
+func (metrica *TimerPercentile90Metrica) GetValue() (float64, error) {
+	return metrica.dataSource.Percentile(90), nil
+}
+
+type TimerPercentile95Metrica struct {
+	*BaseTimerMetrica
+}
+
+func (metrica *TimerPercentile95Metrica) GetValue() (float64, error) {
+	return metrica.dataSource.Percentile(95), nil
+}

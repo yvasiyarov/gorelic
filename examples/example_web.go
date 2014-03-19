@@ -53,10 +53,11 @@ func main() {
 	}
 	agent := gorelic.NewAgent()
 	agent.Verbose = true
+	agent.CollectHttpStat = true
 	agent.NewrelicLicense = *newrelicLicense
 	agent.Run()
 
-	http.HandleFunc("/", gorelic.WrapHttpHandlerFunc(HelloServer))
+	http.HandleFunc("/", agent.WrapHttpHandlerFunc(HelloServer))
 	http.ListenAndServe(":8080", nil)
 
 }

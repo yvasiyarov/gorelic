@@ -1,10 +1,12 @@
 package gorelic
 
 import (
+	"errors"
 	"fmt"
+	metrics "github.com/yvasiyarov/go-metrics"
 	"github.com/yvasiyarov/newrelic_platform_go"
 	"log"
-	"errors"
+	"net/http"
 )
 
 const (
@@ -29,11 +31,13 @@ type Agent struct {
 	Verbose                     bool
 	CollectGcStat               bool
 	CollectMemoryStat           bool
+	CollectHttpStat             bool
 	GCPollInterval              int
 	MemoryAllocatorPollInterval int
 	AgentGUID                   string
 	AgentVersion                string
 	plugin                      *newrelic_platform_go.NewrelicPlugin
+	HttpTimer                   metrics.Timer
 }
 
 func NewAgent() *Agent {
@@ -49,6 +53,20 @@ func NewAgent() *Agent {
 		AgentVersion:                AGENT_VERSION,
 	}
 	return agent
+}
+
+func (agent *Agent) WrapHttpHandlerFunc(h THttpHandlerFunc) THttpHandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		proxy := NewHttpHandlerFunc(h)
+		proxy.timer = agent.HttpTimer
+		proxy.ServeHTTP(w, req)
+	}
+}
+
+func (agent *Agent) WrapHttpHandler(h http.Handler) http.Handler {
+	proxy := NewHttpHandler(h)
+	proxy.timer = agent.HttpTimer
+	return proxy
 }
 
 func (agent *Agent) Run() error {
@@ -69,6 +87,12 @@ func (agent *Agent) Run() error {
 	if agent.CollectMemoryStat {
 		addMemoryMericsToComponent(component, agent.MemoryAllocatorPollInterval)
 		agent.Debug(fmt.Sprintf("Init memory allocator metrics collection. Poll interval %d seconds.", agent.MemoryAllocatorPollInterval))
+	}
+
+	if agent.CollectHttpStat {
+		agent.HttpTimer = metrics.NewTimer()
+		addHttpMericsToComponent(component, agent.HttpTimer)
+		agent.Debug(fmt.Sprintf("Init HTTP metrics collection."))
 	}
 
 	agent.plugin.Verbose = agent.Verbose

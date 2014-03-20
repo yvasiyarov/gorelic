@@ -76,7 +76,7 @@ type timerMeanMetrica struct {
 }
 
 func (metrica *timerMeanMetrica) GetValue() (float64, error) {
-	return metrica.dataSource.Mean(), nil
+	return metrica.dataSource.Mean() / float64(time.Millisecond), nil
 }
 
 type timerMinMetrica struct {
@@ -84,7 +84,7 @@ type timerMinMetrica struct {
 }
 
 func (metrica *timerMinMetrica) GetValue() (float64, error) {
-	return float64(metrica.dataSource.Min()) * float64(time.Millisecond), nil
+	return float64(metrica.dataSource.Min()) / float64(time.Millisecond), nil
 }
 
 type timerMaxMetrica struct {
@@ -92,7 +92,7 @@ type timerMaxMetrica struct {
 }
 
 func (metrica *timerMaxMetrica) GetValue() (float64, error) {
-	return float64(metrica.dataSource.Max()) * float64(time.Millisecond), nil
+	return float64(metrica.dataSource.Max()) / float64(time.Millisecond), nil
 }
 
 type timerPercentile75Metrica struct {
@@ -100,7 +100,7 @@ type timerPercentile75Metrica struct {
 }
 
 func (metrica *timerPercentile75Metrica) GetValue() (float64, error) {
-	return metrica.dataSource.Percentile(75) * float64(time.Millisecond), nil
+	return metrica.dataSource.Percentile(0.75) / float64(time.Millisecond), nil
 }
 
 type timerPercentile90Metrica struct {
@@ -108,7 +108,7 @@ type timerPercentile90Metrica struct {
 }
 
 func (metrica *timerPercentile90Metrica) GetValue() (float64, error) {
-	return metrica.dataSource.Percentile(90) * float64(time.Millisecond), nil
+	return metrica.dataSource.Percentile(0.90) / float64(time.Millisecond), nil
 }
 
 type timerPercentile95Metrica struct {
@@ -116,7 +116,7 @@ type timerPercentile95Metrica struct {
 }
 
 func (metrica *timerPercentile95Metrica) GetValue() (float64, error) {
-	return metrica.dataSource.Percentile(95) * float64(time.Millisecond), nil
+	return metrica.dataSource.Percentile(0.95) / float64(time.Millisecond), nil
 }
 
 func addHTTPMericsToComponent(component newrelic_platform_go.IComponent, timer metrics.Timer) {

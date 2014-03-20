@@ -29,7 +29,7 @@ const (
 	DefaultAgentGuid = "com.github.yvasiyarov.GoRelic"
 
 	//CurrentAgentVersion is plugin version
-	CurrentAgentVersion = "0.0.5"
+	CurrentAgentVersion = "0.0.6"
 
 	//DefaultAgentName in NewRelic GUI. You can change it.
 	DefaultAgentName = "Go daemon"

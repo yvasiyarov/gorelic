@@ -87,9 +87,15 @@ But be carefull, ReadGCStats() blocks mheap, so its not good idea to set GCPollI
 All this metrics collected once in MemoryAllocatorPollInterval. In order to collect this statistic agent use ReadMemStats() routine.
 This routine calls stoptheworld() internally and it block everything. So, please, consider this when you change MemoryAllocatorPollInterval value.
 
+### HTTP metrics   
+- throughput (requests per second), calculated for last minute  
+- mean throughput (requests per second)   
+- mean response time  
+- min response time  
+- max response time  
+- 75%, 90%, 95% percentiles for response time
+ 
 ## TODO
-- Collect more CPU metrics
 - Collect per-size allocation statistic
 - Collect user defined metrics
-- Monkey-patching for web applications
 

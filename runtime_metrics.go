@@ -11,33 +11,33 @@ import (
 	"time"
 )
 
-const LINUX_SYSTEM_QUERY_INTERVAL = 60
+const linuxSystemQueryInterval = 60
 
 // Number of goroutines metrica
-type NOGoroutinesMetrica struct{}
+type noGoroutinesMetrica struct{}
 
-func (metrica *NOGoroutinesMetrica) GetName() string {
+func (metrica *noGoroutinesMetrica) GetName() string {
 	return "Runtime/General/NOGoroutines"
 }
-func (metrica *NOGoroutinesMetrica) GetUnits() string {
+func (metrica *noGoroutinesMetrica) GetUnits() string {
 	return "goroutines"
 }
-func (metrica *NOGoroutinesMetrica) GetValue() (float64, error) {
+func (metrica *noGoroutinesMetrica) GetValue() (float64, error) {
 	return float64(runtime.NumGoroutine()), nil
 }
 
 // Number of CGO calls metrica
-type NOCgoCallsMetrica struct {
+type noCgoCallsMetrica struct {
 	lastValue int64
 }
 
-func (metrica *NOCgoCallsMetrica) GetName() string {
+func (metrica *noCgoCallsMetrica) GetName() string {
 	return "Runtime/General/NOCgoCalls"
 }
-func (metrica *NOCgoCallsMetrica) GetUnits() string {
+func (metrica *noCgoCallsMetrica) GetUnits() string {
 	return "calls"
 }
-func (metrica *NOCgoCallsMetrica) GetValue() (float64, error) {
+func (metrica *noCgoCallsMetrica) GetValue() (float64, error) {
 	currentValue := runtime.NumCgoCall()
 	value := float64(currentValue - metrica.lastValue)
 	metrica.lastValue = currentValue
@@ -46,46 +46,46 @@ func (metrica *NOCgoCallsMetrica) GetValue() (float64, error) {
 }
 
 //OS specific metrics data source interface
-type ISystemMetricaDataSource interface {
+type iSystemMetricaDataSource interface {
 	GetValue(key string) (float64, error)
 }
 
-// ISystemMetricaDataSource fabrica
-func NewSystemMetricaDataSource() ISystemMetricaDataSource {
-	var ds ISystemMetricaDataSource
+// iSystemMetricaDataSource fabrica
+func newSystemMetricaDataSource() iSystemMetricaDataSource {
+	var ds iSystemMetricaDataSource
 	switch runtime.GOOS {
 	default:
-		ds = &SystemMetricaDataSource{}
+		ds = &systemMetricaDataSource{}
 	case "linux":
-		ds = &LinuxSystemMetricaDataSource{
+		ds = &linuxSystemMetricaDataSource{
 			systemData: make(map[string]string),
 		}
 	}
 	return ds
 }
 
-//Default implementation of ISystemMetricaDataSource. Just return an error
-type SystemMetricaDataSource struct{}
+//Default implementation of iSystemMetricaDataSource. Just return an error
+type systemMetricaDataSource struct{}
 
-func (ds *SystemMetricaDataSource) GetValue(key string) (float64, error) {
-	return 0, fmt.Errorf("This metrica was not implemented yet for %s", runtime.GOOS)
+func (ds *systemMetricaDataSource) GetValue(key string) (float64, error) {
+	return 0, fmt.Errorf("this metrica was not implemented yet for %s", runtime.GOOS)
 }
 
 // Linux OS implementation of ISystemMetricaDataSource
-type LinuxSystemMetricaDataSource struct {
+type linuxSystemMetricaDataSource struct {
 	lastUpdate time.Time
 	systemData map[string]string
 }
 
-func (ds *LinuxSystemMetricaDataSource) GetValue(key string) (float64, error) {
+func (ds *linuxSystemMetricaDataSource) GetValue(key string) (float64, error) {
 	if err := ds.checkAndUpdateData(); err != nil {
 		return 0, err
 	} else if val, ok := ds.systemData[key]; !ok {
-		return 0, fmt.Errorf("System data with key %s was not found.", key)
+		return 0, fmt.Errorf("system data with key %s was not found", key)
 	} else if key == "VmSize" || key == "VmPeak" || key == "VmHWM" || key == "VmRSS" {
 		valueParts := strings.Split(val, " ")
 		if len(valueParts) != 2 {
-			return 0, fmt.Errorf("Invalid format for value %s", key)
+			return 0, fmt.Errorf("invalid format for value %s", key)
 		}
 		valConverted, err := strconv.ParseFloat(valueParts[0], 64)
 		if err != nil {
@@ -106,9 +106,9 @@ func (ds *LinuxSystemMetricaDataSource) GetValue(key string) (float64, error) {
 		return valConverted, nil
 	}
 }
-func (ds *LinuxSystemMetricaDataSource) checkAndUpdateData() error {
+func (ds *linuxSystemMetricaDataSource) checkAndUpdateData() error {
 	startTime := time.Now()
-	if startTime.Sub(ds.lastUpdate) > time.Second*LINUX_SYSTEM_QUERY_INTERVAL {
+	if startTime.Sub(ds.lastUpdate) > time.Second*linuxSystemQueryInterval {
 		path := fmt.Sprintf("/proc/%d/status", os.Getpid())
 		rawStats, err := ioutil.ReadFile(path)
 		if err != nil {
@@ -131,59 +131,59 @@ func (ds *LinuxSystemMetricaDataSource) checkAndUpdateData() error {
 }
 
 // OS specific metrica
-type SystemMetrica struct {
+type systemMetrica struct {
 	sourceKey    string
 	newrelicName string
 	units        string
-	dataSource   ISystemMetricaDataSource
+	dataSource   iSystemMetricaDataSource
 }
 
-func (metrica *SystemMetrica) GetName() string {
+func (metrica *systemMetrica) GetName() string {
 	return metrica.newrelicName
 }
-func (metrica *SystemMetrica) GetUnits() string {
+func (metrica *systemMetrica) GetUnits() string {
 	return metrica.units
 }
-func (metrica *SystemMetrica) GetValue() (float64, error) {
+func (metrica *systemMetrica) GetValue() (float64, error) {
 	return metrica.dataSource.GetValue(metrica.sourceKey)
 }
 
 func addRuntimeMericsToComponent(component newrelic_platform_go.IComponent) {
-	component.AddMetrica(&NOGoroutinesMetrica{})
-	component.AddMetrica(&NOCgoCallsMetrica{})
+	component.AddMetrica(&noGoroutinesMetrica{})
+	component.AddMetrica(&noCgoCallsMetrica{})
 
-	ds := NewSystemMetricaDataSource()
-	metrics := []*SystemMetrica{
-		&SystemMetrica{
+	ds := newSystemMetricaDataSource()
+	metrics := []*systemMetrica{
+		&systemMetrica{
 			sourceKey:    "Threads",
 			units:        "Threads",
 			newrelicName: "Runtime/System/Threads",
 		},
-		&SystemMetrica{
+		&systemMetrica{
 			sourceKey:    "FDSize",
 			units:        "fd",
 			newrelicName: "Runtime/System/FDSize",
 		},
 		// Peak virtual memory size
-		&SystemMetrica{
+		&systemMetrica{
 			sourceKey:    "VmPeak",
 			units:        "bytes",
 			newrelicName: "Runtime/System/Memory/VmPeakSize",
 		},
 		//Virtual memory size
-		&SystemMetrica{
+		&systemMetrica{
 			sourceKey:    "VmSize",
 			units:        "bytes",
 			newrelicName: "Runtime/System/Memory/VmCurrent",
 		},
 		//Peak resident set size
-		&SystemMetrica{
+		&systemMetrica{
 			sourceKey:    "VmHWM",
 			units:        "bytes",
 			newrelicName: "Runtime/System/Memory/RssPeak",
 		},
 		//Resident set size
-		&SystemMetrica{
+		&systemMetrica{
 			sourceKey:    "VmRSS",
 			units:        "bytes",
 			newrelicName: "Runtime/System/Memory/RssCurrent",

@@ -6,96 +6,96 @@ import (
 	"time"
 )
 
-func NewMemoryMetricaDataSource(pollInterval int) GoMetricaDataSource {
+func newMemoryMetricaDataSource(pollInterval int) goMetricaDataSource {
 	r := metrics.NewRegistry()
 
 	metrics.RegisterRuntimeMemStats(r)
 	metrics.CaptureRuntimeMemStatsOnce(r)
 	go metrics.CaptureRuntimeMemStats(r, time.Duration(pollInterval)*time.Second)
-	return GoMetricaDataSource{r}
+	return goMetricaDataSource{r}
 }
 
 func addMemoryMericsToComponent(component newrelic_platform_go.IComponent, pollInterval int) {
-	gaugeMetrics := []*BaseGoMetrica{
+	gaugeMetrics := []*baseGoMetrica{
 		//Memory in use metrics
-		&BaseGoMetrica{
+		&baseGoMetrica{
 			name:          "InUse/Total",
 			units:         "bytes",
 			dataSourceKey: "runtime.MemStats.Alloc",
 		},
-		&BaseGoMetrica{
+		&baseGoMetrica{
 			name:          "InUse/Heap",
 			units:         "bytes",
 			dataSourceKey: "runtime.MemStats.HeapAlloc",
 		},
-		&BaseGoMetrica{
+		&baseGoMetrica{
 			name:          "InUse/Stack",
 			units:         "bytes",
 			dataSourceKey: "runtime.MemStats.StackInuse",
 		},
-		&BaseGoMetrica{
+		&baseGoMetrica{
 			name:          "InUse/MSpanInuse",
 			units:         "bytes",
 			dataSourceKey: "runtime.MemStats.MSpanInuse",
 		},
-		&BaseGoMetrica{
+		&baseGoMetrica{
 			name:          "InUse/MCacheInuse",
 			units:         "bytes",
 			dataSourceKey: "runtime.MemStats.MCacheInuse",
 		},
 	}
-	ds := NewMemoryMetricaDataSource(pollInterval)
+	ds := newMemoryMetricaDataSource(pollInterval)
 	for _, m := range gaugeMetrics {
 		m.basePath = "Runtime/Memory/"
 		m.dataSource = ds
-		component.AddMetrica(&GaugeMetrica{m})
+		component.AddMetrica(&gaugeMetrica{m})
 	}
 
-	gaugeIncMetrics := []*BaseGoMetrica{
+	gaugeIncMetrics := []*baseGoMetrica{
 		//NO operations graph
-		&BaseGoMetrica{
+		&baseGoMetrica{
 			name:          "Operations/NoPointerLookups",
 			units:         "lookups",
 			dataSourceKey: "runtime.MemStats.Lookups",
 		},
-		&BaseGoMetrica{
+		&baseGoMetrica{
 			name:          "Operations/NoMallocs",
 			units:         "mallocs",
 			dataSourceKey: "runtime.MemStats.Mallocs",
 		},
-		&BaseGoMetrica{
+		&baseGoMetrica{
 			name:          "Operations/NoFrees",
 			units:         "frees",
 			dataSourceKey: "runtime.MemStats.Frees",
 		},
 
 		// Sytem memory allocations
-		&BaseGoMetrica{
+		&baseGoMetrica{
 			name:          "SysMem/Total",
 			units:         "bytes",
 			dataSourceKey: "runtime.MemStats.Sys",
 		},
-		&BaseGoMetrica{
+		&baseGoMetrica{
 			name:          "SysMem/Heap",
 			units:         "bytes",
 			dataSourceKey: "runtime.MemStats.HeapSys",
 		},
-		&BaseGoMetrica{
+		&baseGoMetrica{
 			name:          "SysMem/Stack",
 			units:         "bytes",
 			dataSourceKey: "runtime.MemStats.StackSys",
 		},
-		&BaseGoMetrica{
+		&baseGoMetrica{
 			name:          "SysMem/MSpan",
 			units:         "bytes",
 			dataSourceKey: "runtime.MemStats.MSpanSys",
 		},
-		&BaseGoMetrica{
+		&baseGoMetrica{
 			name:          "SysMem/MCache",
 			units:         "bytes",
 			dataSourceKey: "runtime.MemStats.MCacheSys",
 		},
-		&BaseGoMetrica{
+		&baseGoMetrica{
 			name:          "SysMem/BuckHash",
 			units:         "bytes",
 			dataSourceKey: "runtime.MemStats.BuckHashSys",
@@ -105,6 +105,6 @@ func addMemoryMericsToComponent(component newrelic_platform_go.IComponent, pollI
 	for _, m := range gaugeIncMetrics {
 		m.basePath = "Runtime/Memory/"
 		m.dataSource = ds
-		component.AddMetrica(&GaugeIncMetrica{BaseGoMetrica: m})
+		component.AddMetrica(&gaugeIncMetrica{baseGoMetrica: m})
 	}
 }

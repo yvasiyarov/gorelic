@@ -18,7 +18,7 @@ var numCalls = expvar.NewInt("num_calls")
 
 func allocateAndSum(arraySize int) int {
 	arr := make([]int, arraySize, arraySize)
-	for i, _ := range arr {
+	for i := range arr {
 		arr[i] = rand.Int()
 	}
 	time.Sleep(time.Duration(rand.Intn(3000)) * time.Millisecond)
@@ -40,7 +40,7 @@ func doSomeJob(numRoutines int) {
 	runtime.GC()
 }
 
-func HelloServer(w http.ResponseWriter, req *http.Request) {
+func helloServer(w http.ResponseWriter, req *http.Request) {
 
 	doSomeJob(5)
 	io.WriteString(w, "Did some work")
@@ -53,11 +53,11 @@ func main() {
 	}
 	agent := gorelic.NewAgent()
 	agent.Verbose = true
-	agent.CollectHttpStat = true
+	agent.CollectHTTPStat = true
 	agent.NewrelicLicense = *newrelicLicense
 	agent.Run()
 
-	http.HandleFunc("/", agent.WrapHttpHandlerFunc(HelloServer))
+	http.HandleFunc("/", agent.WrapHTTPHandlerFunc(helloServer))
 	http.ListenAndServe(":8080", nil)
 
 }

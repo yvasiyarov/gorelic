@@ -6,177 +6,100 @@ import (
 )
 
 const (
-	HISTOGRAM_MIN = iota
-	HISTOGRAM_MAX
-	HISTOGRAM_MEAN
-	HISTOGRAM_PERCENTILE
-	HISTOGRAM_STD_DEV
-	HISTOGRAM_VARIANCE
-	NO_HISTOGRAM_FUNCTIONS
+	histogramMin = iota
+	histogramMax
+	histogramMean
+	histogramPercentile
+	histogramStdDev
+	histogramVariance
+	noHistogramFunctions
 )
 
-type GoMetricaDataSource struct {
+type goMetricaDataSource struct {
 	metrics.Registry
 }
 
-func (ds GoMetricaDataSource) GetGaugeValue(key string) (float64, error) {
+func (ds goMetricaDataSource) GetGaugeValue(key string) (float64, error) {
 	if valueContainer := ds.Get(key); valueContainer == nil {
-		return 0, fmt.Errorf("Metrica with name %s is not registered\n", key)
+		return 0, fmt.Errorf("metrica with name %s is not registered\n", key)
 	} else if gauge, ok := valueContainer.(metrics.Gauge); ok {
 		return float64(gauge.Value()), nil
 	} else {
-		return 0, fmt.Errorf("Metrica container has unexpected type: %T\n", valueContainer)
+		return 0, fmt.Errorf("metrica container has unexpected type: %T\n", valueContainer)
 	}
 }
 
-func (ds GoMetricaDataSource) GetHistogramValue(key string, statFunction int, percentile float64) (float64, error) {
+func (ds goMetricaDataSource) GetHistogramValue(key string, statFunction int, percentile float64) (float64, error) {
 	if valueContainer := ds.Get(key); valueContainer == nil {
-		return 0, fmt.Errorf("Metrica with name %s is not registered\n", key)
+		return 0, fmt.Errorf("metrica with name %s is not registered\n", key)
 	} else if histogram, ok := valueContainer.(metrics.Histogram); ok {
 		switch statFunction {
 		default:
-			return 0, fmt.Errorf("Unsupported stat function for histogram: %s\n", statFunction)
-		case HISTOGRAM_MAX:
+			return 0, fmt.Errorf("unsupported stat function for histogram: %s\n", statFunction)
+		case histogramMax:
 			return float64(histogram.Max()), nil
-		case HISTOGRAM_MIN:
+		case histogramMin:
 			return float64(histogram.Min()), nil
-		case HISTOGRAM_MEAN:
+		case histogramMean:
 			return float64(histogram.Mean()), nil
-		case HISTOGRAM_STD_DEV:
+		case histogramStdDev:
 			return float64(histogram.StdDev()), nil
-		case HISTOGRAM_VARIANCE:
+		case histogramVariance:
 			return float64(histogram.Variance()), nil
-		case HISTOGRAM_PERCENTILE:
+		case histogramPercentile:
 			return float64(histogram.Percentile(percentile)), nil
 		}
 	} else {
-		return 0, fmt.Errorf("Metrica container has unexpected type: %T\n", valueContainer)
+		return 0, fmt.Errorf("metrica container has unexpected type: %T\n", valueContainer)
 	}
 }
 
-type BaseGoMetrica struct {
-	dataSource    GoMetricaDataSource
+type baseGoMetrica struct {
+	dataSource    goMetricaDataSource
 	basePath      string
 	name          string
 	units         string
 	dataSourceKey string
 }
 
-func (metrica *BaseGoMetrica) GetName() string {
+func (metrica *baseGoMetrica) GetName() string {
 	return metrica.basePath + metrica.name
 }
 
-func (metrica *BaseGoMetrica) GetUnits() string {
+func (metrica *baseGoMetrica) GetUnits() string {
 	return metrica.units
 }
 
-type GaugeMetrica struct {
-	*BaseGoMetrica
+type gaugeMetrica struct {
+	*baseGoMetrica
 }
 
-func (metrica *GaugeMetrica) GetValue() (float64, error) {
+func (metrica *gaugeMetrica) GetValue() (float64, error) {
 	return metrica.dataSource.GetGaugeValue(metrica.dataSourceKey)
 }
 
-type GaugeIncMetrica struct {
-	*BaseGoMetrica
+type gaugeIncMetrica struct {
+	*baseGoMetrica
 	previousValue float64
 }
 
-func (metrica *GaugeIncMetrica) GetValue() (float64, error) {
-	if currentValue, err := metrica.dataSource.GetGaugeValue(metrica.dataSourceKey); err != nil {
-		return 0, err
-	} else {
-		value := currentValue - metrica.previousValue
+func (metrica *gaugeIncMetrica) GetValue() (float64, error) {
+	var value float64
+	var currentValue float64
+	var err error
+	if currentValue, err = metrica.dataSource.GetGaugeValue(metrica.dataSourceKey); err == nil {
+		value = currentValue - metrica.previousValue
 		metrica.previousValue = currentValue
-		return value, nil
 	}
+	return value, err
 }
 
-type HistogramMetrica struct {
-	*BaseGoMetrica
+type histogramMetrica struct {
+	*baseGoMetrica
 	statFunction    int
 	percentileValue float64
 }
 
-func (metrica *HistogramMetrica) GetValue() (float64, error) {
+func (metrica *histogramMetrica) GetValue() (float64, error) {
 	return metrica.dataSource.GetHistogramValue(metrica.dataSourceKey, metrica.statFunction, metrica.percentileValue)
-}
-
-type BaseTimerMetrica struct {
-	dataSource metrics.Timer
-	name       string
-	units      string
-}
-
-func (metrica *BaseTimerMetrica) GetName() string {
-	return metrica.name
-}
-
-func (metrica *BaseTimerMetrica) GetUnits() string {
-	return metrica.units
-}
-
-type TimerRate1Metrica struct {
-	*BaseTimerMetrica
-}
-
-func (metrica *TimerRate1Metrica) GetValue() (float64, error) {
-	return metrica.dataSource.Rate1(), nil
-}
-
-type TimerRateMeanMetrica struct {
-	*BaseTimerMetrica
-}
-
-func (metrica *TimerRateMeanMetrica) GetValue() (float64, error) {
-	return metrica.dataSource.RateMean(), nil
-}
-
-type TimerMeanMetrica struct {
-	*BaseTimerMetrica
-}
-
-func (metrica *TimerMeanMetrica) GetValue() (float64, error) {
-	return metrica.dataSource.Mean(), nil
-}
-
-type TimerMinMetrica struct {
-	*BaseTimerMetrica
-}
-
-func (metrica *TimerMinMetrica) GetValue() (float64, error) {
-	return float64(metrica.dataSource.Min()), nil
-}
-
-type TimerMaxMetrica struct {
-	*BaseTimerMetrica
-}
-
-func (metrica *TimerMaxMetrica) GetValue() (float64, error) {
-	return float64(metrica.dataSource.Max()), nil
-}
-
-type TimerPercentile75Metrica struct {
-	*BaseTimerMetrica
-}
-
-func (metrica *TimerPercentile75Metrica) GetValue() (float64, error) {
-	return metrica.dataSource.Percentile(75), nil
-}
-
-type TimerPercentile90Metrica struct {
-	*BaseTimerMetrica
-}
-
-func (metrica *TimerPercentile90Metrica) GetValue() (float64, error) {
-	return metrica.dataSource.Percentile(90), nil
-}
-
-type TimerPercentile95Metrica struct {
-	*BaseTimerMetrica
-}
-
-func (metrica *TimerPercentile95Metrica) GetValue() (float64, error) {
-	return metrica.dataSource.Percentile(95), nil
 }

@@ -10,20 +10,33 @@ import (
 )
 
 const (
-	// Send data to newrelic every 60 seconds
-	NEWRELIC_POLL_INTERVAL = 60
-	// Get garbage collector run statistic every 10 seconds
-	// During GC stat pooling - mheap will be locked, so be carefull changing this value
-	GC_POLL_INTERVAL_IN_SECONDS = 10
-	// Get memory allocator statistic every 60 seconds
-	// During this process stoptheword() is called, so be carefull changing this value
-	MEMORY_ALLOCATOR_POLL_INTERVAL_IN_SECONDS = 60
+	// DefaultNewRelicPollInterval - how often we will report metrics to NewRelic.
+	// Recommended values is 60 seconds
+	DefaultNewRelicPollInterval = 60
 
-	AGENT_GUID    = "com.github.yvasiyarov.GoRelic"
-	AGENT_VERSION = "0.0.4"
-	AGENT_NAME    = "Go daemon"
+	// DefaultGcPollIntervalInSeconds - how often we will get garbage collector run statistic
+	// Default value is - every 10 seconds
+	// During GC stat pooling - mheap will be locked, so be carefull changing this value
+	DefaultGcPollIntervalInSeconds = 10
+
+	// DefaultMemoryAllocatorPollIntervalInSeconds - how often we will get memory allocator statistic.
+	// Default value is - every 60 seconds
+	// During this process stoptheword() is called, so be carefull changing this value
+	DefaultMemoryAllocatorPollIntervalInSeconds = 60
+
+	//DefaultAgentGuid is plugin ID in NewRelic.
+	//You should not change it unless you want to create your own plugin.
+	DefaultAgentGuid = "com.github.yvasiyarov.GoRelic"
+
+	//CurrentAgentVersion is plugin version
+	CurrentAgentVersion = "0.0.5"
+
+	//DefaultAgentName in NewRelic GUI. You can change it.
+	DefaultAgentName = "Go daemon"
 )
 
+//Agent - is NewRelic agent implementation.
+//Agent start separate go routine which will report data to NewRelic
 type Agent struct {
 	NewrelicName                string
 	NewrelicLicense             string
@@ -31,58 +44,54 @@ type Agent struct {
 	Verbose                     bool
 	CollectGcStat               bool
 	CollectMemoryStat           bool
-	CollectHttpStat             bool
+	CollectHTTPStat             bool
 	GCPollInterval              int
 	MemoryAllocatorPollInterval int
 	AgentGUID                   string
 	AgentVersion                string
 	plugin                      *newrelic_platform_go.NewrelicPlugin
-	HttpTimer                   metrics.Timer
+	HTTPTimer                   metrics.Timer
 }
 
+//NewAgent build new Agent objects.
 func NewAgent() *Agent {
 	agent := &Agent{
-		NewrelicName:                AGENT_NAME,
-		NewrelicPollInterval:        NEWRELIC_POLL_INTERVAL,
+		NewrelicName:                DefaultAgentName,
+		NewrelicPollInterval:        DefaultNewRelicPollInterval,
 		Verbose:                     false,
 		CollectGcStat:               true,
 		CollectMemoryStat:           true,
-		GCPollInterval:              GC_POLL_INTERVAL_IN_SECONDS,
-		MemoryAllocatorPollInterval: MEMORY_ALLOCATOR_POLL_INTERVAL_IN_SECONDS,
-		AgentGUID:                   AGENT_GUID,
-		AgentVersion:                AGENT_VERSION,
+		GCPollInterval:              DefaultGcPollIntervalInSeconds,
+		MemoryAllocatorPollInterval: DefaultMemoryAllocatorPollIntervalInSeconds,
+		AgentGUID:                   DefaultAgentGuid,
+		AgentVersion:                CurrentAgentVersion,
 	}
 	return agent
 }
 
-func (agent *Agent) initTimer() {
-	if agent.HttpTimer == nil {
-		agent.HttpTimer = metrics.NewTimer()
-	}
-
-	agent.CollectHttpStat = true
-}
-
-func (agent *Agent) WrapHttpHandlerFunc(h THttpHandlerFunc) THttpHandlerFunc {
+//WrapHTTPHandlerFunc  instrument HTTP handler functions to collect HTTP metrics
+func (agent *Agent) WrapHTTPHandlerFunc(h tHTTPHandlerFunc) tHTTPHandlerFunc {
 	agent.initTimer()
 	return func(w http.ResponseWriter, req *http.Request) {
-		proxy := NewHttpHandlerFunc(h)
-		proxy.timer = agent.HttpTimer
+		proxy := newHTTPHandlerFunc(h)
+		proxy.timer = agent.HTTPTimer
 		proxy.ServeHTTP(w, req)
 	}
 }
 
-func (agent *Agent) WrapHttpHandler(h http.Handler) http.Handler {
+//WrapHTTPHandler  instrument HTTP handler object to collect HTTP metrics
+func (agent *Agent) WrapHTTPHandler(h http.Handler) http.Handler {
 	agent.initTimer()
 
-	proxy := NewHttpHandler(h)
-	proxy.timer = agent.HttpTimer
+	proxy := newHTTPHandler(h)
+	proxy.timer = agent.HTTPTimer
 	return proxy
 }
 
+//Run initialize Agent instance and start harvest go routine
 func (agent *Agent) Run() error {
 	if agent.NewrelicLicense == "" {
-		return errors.New("Please, pass a valid newrelic license key.")
+		return errors.New("please, pass a valid newrelic license key")
 	}
 
 	agent.plugin = newrelic_platform_go.NewNewrelicPlugin(agent.AgentVersion, agent.NewrelicLicense, agent.NewrelicPollInterval)
@@ -93,17 +102,17 @@ func (agent *Agent) Run() error {
 
 	if agent.CollectGcStat {
 		addGCMericsToComponent(component, agent.GCPollInterval)
-		agent.Debug(fmt.Sprintf("Init GC metrics collection. Poll interval %d seconds.", agent.GCPollInterval))
+		agent.debug(fmt.Sprintf("Init GC metrics collection. Poll interval %d seconds.", agent.GCPollInterval))
 	}
 	if agent.CollectMemoryStat {
 		addMemoryMericsToComponent(component, agent.MemoryAllocatorPollInterval)
-		agent.Debug(fmt.Sprintf("Init memory allocator metrics collection. Poll interval %d seconds.", agent.MemoryAllocatorPollInterval))
+		agent.debug(fmt.Sprintf("Init memory allocator metrics collection. Poll interval %d seconds.", agent.MemoryAllocatorPollInterval))
 	}
 
-	if agent.CollectHttpStat {
+	if agent.CollectHTTPStat {
 		agent.initTimer()
-		addHttpMericsToComponent(component, agent.HttpTimer)
-		agent.Debug(fmt.Sprintf("Init HTTP metrics collection."))
+		addHTTPMericsToComponent(component, agent.HTTPTimer)
+		agent.debug(fmt.Sprintf("Init HTTP metrics collection."))
 	}
 
 	agent.plugin.Verbose = agent.Verbose
@@ -111,7 +120,17 @@ func (agent *Agent) Run() error {
 	return nil
 }
 
-func (agent *Agent) Debug(msg string) {
+//Initialize global metrics.Timer object, used to collect HTTP metrics
+func (agent *Agent) initTimer() {
+	if agent.HTTPTimer == nil {
+		agent.HTTPTimer = metrics.NewTimer()
+	}
+
+	agent.CollectHTTPStat = true
+}
+
+//Print debug messages
+func (agent *Agent) debug(msg string) {
 	if agent.Verbose {
 		log.Println(msg)
 	}

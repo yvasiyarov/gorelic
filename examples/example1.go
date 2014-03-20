@@ -13,7 +13,7 @@ var newrelicLicense = flag.String("newrelic-license", "", "Newrelic license")
 
 func allocateAndSum(arraySize int) int {
 	arr := make([]int, arraySize, arraySize)
-	for i, _ := range arr {
+	for i := range arr {
 		arr[i] = rand.Int()
 	}
 	time.Sleep(time.Duration(rand.Intn(3000)) * time.Millisecond)

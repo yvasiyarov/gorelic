@@ -35,6 +35,9 @@ const (
 	DefaultAgentName = "Go daemon"
 )
 
+// ------------------
+// ------- Standard Agent
+
 //Agent - is NewRelic agent implementation.
 //Agent start separate go routine which will report data to NewRelic
 type Agent struct {
@@ -134,4 +137,33 @@ func (agent *Agent) debug(msg string) {
 	if agent.Verbose {
 		log.Println(msg)
 	}
+}
+
+// ------------------
+// ------- Test Agent
+
+type TestAgent struct{}
+
+func NewTestAgent() *TestAgent {
+	return &TestAgent{}
+}
+
+func (agent *TestAgent) WrapHTTPHandlerFunc(h tHTTPHandlerFunc) tHTTPHandlerFunc {
+	return h
+}
+
+func (agent *TestAgent) WrapHTTPHandler(h http.Handler) http.Handler {
+	return h
+}
+
+func (agent *TestAgent) Run() error {
+	return nil
+}
+
+func (agent *TestAgent) initTimer() {
+	return
+}
+
+func (agent *TestAgent) debug(msg string) {
+	return
 }

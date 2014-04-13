@@ -65,7 +65,7 @@ type StandardAgent struct {
 }
 
 //NewAgent build new StandardAgent objects.
-func NewAgent() Agent {
+func NewAgent() *StandardAgent {
 	agent := &StandardAgent{
 		NewrelicName:                DefaultAgentName,
 		NewrelicPollInterval:        DefaultNewRelicPollInterval,

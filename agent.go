@@ -35,12 +35,20 @@ const (
 	DefaultAgentName = "Go daemon"
 )
 
+type Agent interface {
+	WrapHTTPHandlerFunc(tHTTPHandlerFunc) tHTTPHandlerFunc
+	WrapHTTPHandler(http.Handler) http.Handler
+	Run() error
+	initTimer()
+	debug(string)
+}
+
 // ------------------
 // ------- Standard Agent
 
 //Agent - is NewRelic agent implementation.
 //Agent start separate go routine which will report data to NewRelic
-type Agent struct {
+type StandardAgent struct {
 	NewrelicName                string
 	NewrelicLicense             string
 	NewrelicPollInterval        int
@@ -56,9 +64,9 @@ type Agent struct {
 	HTTPTimer                   metrics.Timer
 }
 
-//NewAgent build new Agent objects.
-func NewAgent() *Agent {
-	agent := &Agent{
+//NewAgent build new StandardAgent objects.
+func NewAgent() Agent {
+	agent := &StandardAgent{
 		NewrelicName:                DefaultAgentName,
 		NewrelicPollInterval:        DefaultNewRelicPollInterval,
 		Verbose:                     false,
@@ -73,7 +81,7 @@ func NewAgent() *Agent {
 }
 
 //WrapHTTPHandlerFunc  instrument HTTP handler functions to collect HTTP metrics
-func (agent *Agent) WrapHTTPHandlerFunc(h tHTTPHandlerFunc) tHTTPHandlerFunc {
+func (agent *StandardAgent) WrapHTTPHandlerFunc(h tHTTPHandlerFunc) tHTTPHandlerFunc {
 	agent.initTimer()
 	return func(w http.ResponseWriter, req *http.Request) {
 		proxy := newHTTPHandlerFunc(h)
@@ -83,7 +91,7 @@ func (agent *Agent) WrapHTTPHandlerFunc(h tHTTPHandlerFunc) tHTTPHandlerFunc {
 }
 
 //WrapHTTPHandler  instrument HTTP handler object to collect HTTP metrics
-func (agent *Agent) WrapHTTPHandler(h http.Handler) http.Handler {
+func (agent *StandardAgent) WrapHTTPHandler(h http.Handler) http.Handler {
 	agent.initTimer()
 
 	proxy := newHTTPHandler(h)
@@ -92,7 +100,7 @@ func (agent *Agent) WrapHTTPHandler(h http.Handler) http.Handler {
 }
 
 //Run initialize Agent instance and start harvest go routine
-func (agent *Agent) Run() error {
+func (agent *StandardAgent) Run() error {
 	if agent.NewrelicLicense == "" {
 		return errors.New("please, pass a valid newrelic license key")
 	}
@@ -124,7 +132,7 @@ func (agent *Agent) Run() error {
 }
 
 //Initialize global metrics.Timer object, used to collect HTTP metrics
-func (agent *Agent) initTimer() {
+func (agent *StandardAgent) initTimer() {
 	if agent.HTTPTimer == nil {
 		agent.HTTPTimer = metrics.NewTimer()
 	}
@@ -133,7 +141,7 @@ func (agent *Agent) initTimer() {
 }
 
 //Print debug messages
-func (agent *Agent) debug(msg string) {
+func (agent *StandardAgent) debug(msg string) {
 	if agent.Verbose {
 		log.Println(msg)
 	}

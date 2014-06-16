@@ -35,7 +35,8 @@ If you using Beego, Martini or Revel framework you can hook up gorelic with your
 - https://github.com/yvasiyarov/beego_gorelic   
 - https://github.com/yvasiyarov/martini_gorelic   
 - https://github.com/yvasiyarov/gocraft_gorelic   
-- http://wiki.colar.net/revel_newelic  
+- http://wiki.colar.net/revel_newelic
+- https://github.com/jingweno/negroni-gorelic
    
 
 ### Configuration  

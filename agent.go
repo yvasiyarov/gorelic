@@ -51,6 +51,7 @@ type Agent struct {
 	AgentVersion                string
 	plugin                      *newrelic_platform_go.NewrelicPlugin
 	HTTPTimer                   metrics.Timer
+	Tracer                      *Tracer
 }
 
 //NewAgent build new Agent objects.
@@ -65,6 +66,7 @@ func NewAgent() *Agent {
 		MemoryAllocatorPollInterval: DefaultMemoryAllocatorPollIntervalInSeconds,
 		AgentGUID:                   DefaultAgentGuid,
 		AgentVersion:                CurrentAgentVersion,
+		Tracer:                      nil,
 	}
 	return agent
 }
@@ -99,6 +101,8 @@ func (agent *Agent) Run() error {
 	agent.plugin.AddComponent(component)
 
 	addRuntimeMericsToComponent(component)
+
+	agent.Tracer = newTracer(component)
 
 	if agent.CollectGcStat {
 		addGCMericsToComponent(component, agent.GCPollInterval)

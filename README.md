@@ -112,7 +112,22 @@ In order to collect HTTP metrics, handler functions must be wrapped using WrapHT
 ```go
 http.HandleFunc("/", agent.WrapHTTPHandlerFunc(handler))
 ```
-
+### Tracing Metrics
+You can collect metrics for blocks of code or methods.
+```go
+func anyMethod() {
+  // Trace the whole method.
+  t := agent.BeginTrace("My traced method")
+  defer t.EndTrace()
+  
+  ...Code here
+  
+  // Trace a block of code
+  agent.Trace("block trace", func() {
+     .. Code here
+  })
+}
+```
 ## TODO
 - Collect per-size allocation statistic
 - Collect user defined metrics

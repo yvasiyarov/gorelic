@@ -117,13 +117,13 @@ You can collect metrics for blocks of code or methods.
 ```go
 func anyMethod() {
   // Trace the whole method.
-  t := agent.BeginTrace("My traced method")
+  t := agent.Tracer.BeginTrace("My traced method")
   defer t.EndTrace()
   
   ...Code here
   
   // Trace a block of code
-  agent.Trace("block trace", func() {
+  agent.Tracer.Trace("block trace", func() {
      .. Code here
   })
 }

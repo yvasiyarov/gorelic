@@ -3,10 +3,11 @@ package gorelic
 import (
 	"errors"
 	"fmt"
-	metrics "github.com/yvasiyarov/go-metrics"
-	"github.com/yvasiyarov/newrelic_platform_go"
 	"log"
 	"net/http"
+
+	metrics "github.com/yvasiyarov/go-metrics"
+	"github.com/yvasiyarov/newrelic_platform_go"
 )
 
 const (
@@ -52,6 +53,10 @@ type Agent struct {
 	plugin                      *newrelic_platform_go.NewrelicPlugin
 	HTTPTimer                   metrics.Timer
 	Tracer                      *Tracer
+
+	// All HTTP requests will be done using this client. Change it if you need
+	// to use a proxy.
+	Client http.Client
 }
 
 //NewAgent build new Agent objects.
@@ -97,6 +102,7 @@ func (agent *Agent) Run() error {
 	}
 
 	agent.plugin = newrelic_platform_go.NewNewrelicPlugin(agent.AgentVersion, agent.NewrelicLicense, agent.NewrelicPollInterval)
+	agent.plugin.Client = agent.Client
 	component := newrelic_platform_go.NewPluginComponent(agent.NewrelicName, agent.AgentGUID)
 	agent.plugin.AddComponent(component)
 

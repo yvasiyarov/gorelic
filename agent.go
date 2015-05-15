@@ -46,12 +46,14 @@ type Agent struct {
 	CollectGcStat               bool
 	CollectMemoryStat           bool
 	CollectHTTPStat             bool
+	CollectHTTPStatuses         bool
 	GCPollInterval              int
 	MemoryAllocatorPollInterval int
 	AgentGUID                   string
 	AgentVersion                string
 	plugin                      *newrelic_platform_go.NewrelicPlugin
 	HTTPTimer                   metrics.Timer
+	HTTPStatusCounters          map[int]metrics.Counter
 	Tracer                      *Tracer
 
 	// All HTTP requests will be done using this client. Change it if you need
@@ -59,7 +61,7 @@ type Agent struct {
 	Client http.Client
 }
 
-//NewAgent build new Agent objects.
+// NewAgent builds new Agent objects.
 func NewAgent() *Agent {
 	agent := &Agent{
 		NewrelicName:                DefaultAgentName,
@@ -76,8 +78,23 @@ func NewAgent() *Agent {
 	return agent
 }
 
+// our custom component
+type resettableComponent struct {
+	newrelic_platform_go.IComponent
+	counters map[int]metrics.Counter
+}
+
+// newrelic_platform_go.IComponent interface implementation
+func (c resettableComponent) ClearSentData() {
+	c.IComponent.ClearSentData()
+	for _, counter := range c.counters {
+		counter.Clear()
+	}
+}
+
 //WrapHTTPHandlerFunc  instrument HTTP handler functions to collect HTTP metrics
 func (agent *Agent) WrapHTTPHandlerFunc(h tHTTPHandlerFunc) tHTTPHandlerFunc {
+	agent.CollectHTTPStat = true
 	agent.initTimer()
 	return func(w http.ResponseWriter, req *http.Request) {
 		proxy := newHTTPHandlerFunc(h)
@@ -88,6 +105,7 @@ func (agent *Agent) WrapHTTPHandlerFunc(h tHTTPHandlerFunc) tHTTPHandlerFunc {
 
 //WrapHTTPHandler  instrument HTTP handler object to collect HTTP metrics
 func (agent *Agent) WrapHTTPHandler(h http.Handler) http.Handler {
+	agent.CollectHTTPStat = true
 	agent.initTimer()
 
 	proxy := newHTTPHandler(h)
@@ -107,13 +125,14 @@ func (agent *Agent) Run() error {
 	agent.plugin.AddComponent(component)
 
 	addRuntimeMericsToComponent(component)
-
 	agent.Tracer = newTracer(component)
 
+	// Check agent flags and add relevant metrics.
 	if agent.CollectGcStat {
 		addGCMericsToComponent(component, agent.GCPollInterval)
 		agent.debug(fmt.Sprintf("Init GC metrics collection. Poll interval %d seconds.", agent.GCPollInterval))
 	}
+
 	if agent.CollectMemoryStat {
 		addMemoryMericsToComponent(component, agent.MemoryAllocatorPollInterval)
 		agent.debug(fmt.Sprintf("Init memory allocator metrics collection. Poll interval %d seconds.", agent.MemoryAllocatorPollInterval))
@@ -125,7 +144,21 @@ func (agent *Agent) Run() error {
 		agent.debug(fmt.Sprintf("Init HTTP metrics collection."))
 	}
 
+	if agent.CollectHTTPStatuses {
+		agent.initStatusCounters()
+		component = &resettableComponent{component, agent.HTTPStatusCounters}
+		addHTTPStatusMetricsToComponent(component, agent.HTTPStatusCounters)
+		agent.debug(fmt.Sprintf("Init HTTP status metrics collection."))
+	}
+
+	// Init newrelic reporting plugin.
+	agent.plugin = newrelic_platform_go.NewNewrelicPlugin(agent.AgentVersion, agent.NewrelicLicense, agent.NewrelicPollInterval)
 	agent.plugin.Verbose = agent.Verbose
+
+	// Add our metrics component to the plugin.
+	agent.plugin.AddComponent(component)
+
+	// Start reporting!
 	go agent.plugin.Run()
 	return nil
 }
@@ -135,8 +168,33 @@ func (agent *Agent) initTimer() {
 	if agent.HTTPTimer == nil {
 		agent.HTTPTimer = metrics.NewTimer()
 	}
+}
 
-	agent.CollectHTTPStat = true
+//Initialize metrics.Counters objects, used to collect HTTP statuses
+func (agent *Agent) initStatusCounters() {
+	httpStatuses := []int{
+		http.StatusContinue, http.StatusSwitchingProtocols,
+
+		http.StatusOK, http.StatusCreated, http.StatusAccepted, http.StatusNonAuthoritativeInfo,
+		http.StatusNoContent, http.StatusResetContent, http.StatusPartialContent,
+
+		http.StatusMultipleChoices, http.StatusMovedPermanently, http.StatusFound, http.StatusSeeOther,
+		http.StatusNotModified, http.StatusUseProxy, http.StatusTemporaryRedirect,
+
+		http.StatusBadRequest, http.StatusUnauthorized, http.StatusPaymentRequired, http.StatusForbidden,
+		http.StatusNotFound, http.StatusMethodNotAllowed, http.StatusNotAcceptable, http.StatusProxyAuthRequired,
+		http.StatusRequestTimeout, http.StatusConflict, http.StatusGone, http.StatusLengthRequired,
+		http.StatusPreconditionFailed, http.StatusRequestEntityTooLarge, http.StatusRequestURITooLong, http.StatusUnsupportedMediaType,
+		http.StatusRequestedRangeNotSatisfiable, http.StatusExpectationFailed, http.StatusTeapot,
+
+		http.StatusInternalServerError, http.StatusNotImplemented, http.StatusBadGateway,
+		http.StatusServiceUnavailable, http.StatusGatewayTimeout, http.StatusHTTPVersionNotSupported,
+	}
+
+	agent.HTTPStatusCounters = make(map[int]metrics.Counter, len(httpStatuses))
+	for _, statusCode := range httpStatuses {
+		agent.HTTPStatusCounters[statusCode] = metrics.NewCounter()
+	}
 }
 
 //Print debug messages

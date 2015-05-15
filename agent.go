@@ -146,7 +146,7 @@ func (agent *Agent) Run() error {
 
 	if agent.CollectHTTPStatuses {
 		agent.initStatusCounters()
-		component = &resettableComponent{component, agent.HTTPStatusCounters}
+		component := &resettableComponent{component, agent.HTTPStatusCounters}
 		addHTTPStatusMetricsToComponent(component, agent.HTTPStatusCounters)
 		agent.debug(fmt.Sprintf("Init HTTP status metrics collection."))
 	}

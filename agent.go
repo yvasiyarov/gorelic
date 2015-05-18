@@ -55,6 +55,7 @@ type Agent struct {
 	HTTPTimer                   metrics.Timer
 	HTTPStatusCounters          map[int]metrics.Counter
 	Tracer                      *Tracer
+	CustomMetrics               []newrelic_platform_go.IMetrica
 
 	// All HTTP requests will be done using this client. Change it if you need
 	// to use a proxy.
@@ -74,6 +75,7 @@ func NewAgent() *Agent {
 		AgentGUID:                   DefaultAgentGuid,
 		AgentVersion:                CurrentAgentVersion,
 		Tracer:                      nil,
+		CustomMetrics:               make([]newrelic_platform_go.IMetrica, 0),
 	}
 	return agent
 }
@@ -113,6 +115,11 @@ func (agent *Agent) WrapHTTPHandler(h http.Handler) http.Handler {
 	return proxy
 }
 
+//AddCustomMetric adds metric to be collected periodically with NewrelicPollInterval interval
+func (agent *Agent) AddCustomMetric(metric newrelic_platform_go.IMetrica) {
+	agent.CustomMetrics = append(agent.CustomMetrics, metric)
+}
+
 //Run initialize Agent instance and start harvest go routine
 func (agent *Agent) Run() error {
 	if agent.NewrelicLicense == "" {
@@ -142,6 +149,11 @@ func (agent *Agent) Run() error {
 		agent.initTimer()
 		addHTTPMericsToComponent(component, agent.HTTPTimer)
 		agent.debug(fmt.Sprintf("Init HTTP metrics collection."))
+	}
+
+	for _, metric := range agent.CustomMetrics {
+		component.AddMetrica(metric)
+		agent.debug(fmt.Sprintf("Init %s metric collection.", metric.GetName()))
 	}
 
 	if agent.CollectHTTPStatuses {

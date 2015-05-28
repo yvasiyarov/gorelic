@@ -128,9 +128,11 @@ func (agent *Agent) Run() error {
 
 	agent.plugin = newrelic_platform_go.NewNewrelicPlugin(agent.AgentVersion, agent.NewrelicLicense, agent.NewrelicPollInterval)
 	agent.plugin.Client = agent.Client
-	component := newrelic_platform_go.NewPluginComponent(agent.NewrelicName, agent.AgentGUID)
-	agent.plugin.AddComponent(component)
 
+	var component newrelic_platform_go.IComponent
+	component = newrelic_platform_go.NewPluginComponent(agent.NewrelicName, agent.AgentGUID)
+
+	// Add default metrics and tracer.
 	addRuntimeMericsToComponent(component)
 	agent.Tracer = newTracer(component)
 
@@ -158,7 +160,7 @@ func (agent *Agent) Run() error {
 
 	if agent.CollectHTTPStatuses {
 		agent.initStatusCounters()
-		component := &resettableComponent{component, agent.HTTPStatusCounters}
+		component = &resettableComponent{component, agent.HTTPStatusCounters}
 		addHTTPStatusMetricsToComponent(component, agent.HTTPStatusCounters)
 		agent.debug(fmt.Sprintf("Init HTTP status metrics collection."))
 	}

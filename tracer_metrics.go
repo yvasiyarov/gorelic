@@ -50,7 +50,7 @@ func (transaction *TraceTransaction) addMetricsToComponent(component newrelic_pl
 
 	rate1 := &timerRate1Metrica{
 		baseTimerMetrica: &baseTimerMetrica{
-			name:       transaction.name + "/1minute",
+			name:       transaction.name + "/throughput/1minute",
 			units:      "rps",
 			dataSource: transaction.timer,
 		},
@@ -59,7 +59,7 @@ func (transaction *TraceTransaction) addMetricsToComponent(component newrelic_pl
 
 	rateMean := &timerRateMeanMetrica{
 		baseTimerMetrica: &baseTimerMetrica{
-			name:       transaction.name + "/rateMean",
+			name:       transaction.name + "/throughput/rateMean",
 			units:      "rps",
 			dataSource: transaction.timer,
 		},

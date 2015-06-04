@@ -47,6 +47,25 @@ type TraceTransaction struct {
 }
 
 func (transaction *TraceTransaction) addMetricsToComponent(component newrelic_platform_go.IComponent) {
+
+	rate1 := &timerRate1Metrica{
+		baseTimerMetrica: &baseTimerMetrica{
+			name:       transaction.name + "/1minute",
+			units:      "rps",
+			dataSource: transaction.timer,
+		},
+	}
+	component.AddMetrica(rate1)
+
+	rateMean := &timerRateMeanMetrica{
+		baseTimerMetrica: &baseTimerMetrica{
+			name:       transaction.name + "/rateMean",
+			units:      "rps",
+			dataSource: transaction.timer,
+		},
+	}
+	component.AddMetrica(rateMean)
+
 	tracerMean := &timerMeanMetrica{
 		baseTimerMetrica: &baseTimerMetrica{
 			name:       transaction.name + "/mean",

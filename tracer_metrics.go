@@ -68,7 +68,7 @@ func (transaction *TraceTransaction) addMetricsToComponent(component newrelic_pl
 
 	tracerMean := &timerMeanMetrica{
 		baseTimerMetrica: &baseTimerMetrica{
-			name:       transaction.name + "/mean",
+			name:       transaction.name + "/responseTime/mean",
 			units:      "ms",
 			dataSource: transaction.timer,
 		},
@@ -77,7 +77,7 @@ func (transaction *TraceTransaction) addMetricsToComponent(component newrelic_pl
 
 	tracerMax := &timerMaxMetrica{
 		baseTimerMetrica: &baseTimerMetrica{
-			name:       transaction.name + "/max",
+			name:       transaction.name + "/responseTime/max",
 			units:      "ms",
 			dataSource: transaction.timer,
 		},
@@ -86,7 +86,7 @@ func (transaction *TraceTransaction) addMetricsToComponent(component newrelic_pl
 
 	tracerMin := &timerMinMetrica{
 		baseTimerMetrica: &baseTimerMetrica{
-			name:       transaction.name + "/min",
+			name:       transaction.name + "/responseTime/min",
 			units:      "ms",
 			dataSource: transaction.timer,
 		},
@@ -95,7 +95,7 @@ func (transaction *TraceTransaction) addMetricsToComponent(component newrelic_pl
 
 	tracer75 := &timerPercentile75Metrica{
 		baseTimerMetrica: &baseTimerMetrica{
-			name:       transaction.name + "/percentile75",
+			name:       transaction.name + "/responseTime/percentile75",
 			units:      "ms",
 			dataSource: transaction.timer,
 		},
@@ -104,7 +104,7 @@ func (transaction *TraceTransaction) addMetricsToComponent(component newrelic_pl
 
 	tracer90 := &timerPercentile90Metrica{
 		baseTimerMetrica: &baseTimerMetrica{
-			name:       transaction.name + "/percentile90",
+			name:       transaction.name + "/responseTime/percentile90",
 			units:      "ms",
 			dataSource: transaction.timer,
 		},
@@ -113,7 +113,7 @@ func (transaction *TraceTransaction) addMetricsToComponent(component newrelic_pl
 
 	tracer95 := &timerPercentile95Metrica{
 		baseTimerMetrica: &baseTimerMetrica{
-			name:       transaction.name + "/percentile95",
+			name:       transaction.name + "/responseTime/percentile95",
 			units:      "ms",
 			dataSource: transaction.timer,
 		},
@@ -122,7 +122,7 @@ func (transaction *TraceTransaction) addMetricsToComponent(component newrelic_pl
 
 	tracer99 := &timerPercentile99Metrica{
 		baseTimerMetrica: &baseTimerMetrica{
-			name:       transaction.name + "/percentile99",
+			name:       transaction.name + "/responseTime/percentile99",
 			units:      "ms",
 			dataSource: transaction.timer,
 		},

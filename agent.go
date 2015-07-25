@@ -130,7 +130,7 @@ func (agent *Agent) Run() error {
 	agent.plugin.Client = agent.Client
 
 	var component newrelic_platform_go.IComponent
-	component = newrelic_platform_go.NewPluginComponent(agent.NewrelicName, agent.AgentGUID)
+	component = newrelic_platform_go.NewPluginComponent(agent.NewrelicName, agent.AgentGUID, agent.Verbose)
 
 	// Add default metrics and tracer.
 	addRuntimeMericsToComponent(component)

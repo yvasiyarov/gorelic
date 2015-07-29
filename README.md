@@ -38,7 +38,7 @@ If you using Beego, Martini, Revel or Gin framework you can hook up gorelic with
 - http://wiki.colar.net/revel_newelic
 - https://github.com/jingweno/negroni-gorelic
 - https://github.com/brandfolder/gin-gorelic
-- [https://github.com/syntaqx/echo-middleware/gorelic](https://github.com/syntaqx/echo-middleware/gorelic/tree/master/gorelic)
+- [https://github.com/syntaqx/echo-middleware/gorelic](https://github.com/syntaqx/echo-middleware/tree/master/gorelic)
    
 
 ### Configuration  

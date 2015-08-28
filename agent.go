@@ -165,8 +165,6 @@ func (agent *Agent) Run() error {
 		agent.debug(fmt.Sprintf("Init HTTP status metrics collection."))
 	}
 
-	// Init newrelic reporting plugin.
-	agent.plugin = newrelic_platform_go.NewNewrelicPlugin(agent.AgentVersion, agent.NewrelicLicense, agent.NewrelicPollInterval)
 	agent.plugin.Verbose = agent.Verbose
 
 	// Add our metrics component to the plugin.

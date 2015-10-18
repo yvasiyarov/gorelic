@@ -70,7 +70,7 @@ This agent use functions exposed by runtime or runtime/debug packages to collect
 
 All this metrics are measured in nanoseconds. Last 4 of them can be inaccurate if GC called more often then once in GCPollInterval. 
 If in your workload GC is called more often - you can consider decreasing value of GCPollInterval. 
-But be carefull, ReadGCStats() blocks mheap, so its not good idea to set GCPollInterval to very low values.
+But be careful, ReadGCStats() blocks mheap, so its not good idea to set GCPollInterval to very low values.
 
 ### Memory allocator 
 - Component/Runtime/Memory/SysMem/Total - number of bytes/minute allocated from OS totally. 

@@ -126,7 +126,6 @@ func (agent *Agent) Run() error {
 		return errors.New("please, pass a valid newrelic license key")
 	}
 
-
 	var component newrelic_platform_go.IComponent
 	component = newrelic_platform_go.NewPluginComponent(agent.NewrelicName, agent.AgentGUID, agent.Verbose)
 
@@ -136,7 +135,7 @@ func (agent *Agent) Run() error {
 
 	// Check agent flags and add relevant metrics.
 	if agent.CollectGcStat {
-		addGCMericsToComponent(component, agent.GCPollInterval)
+		addGCMetricsToComponent(component, agent.GCPollInterval)
 		agent.debug(fmt.Sprintf("Init GC metrics collection. Poll interval %d seconds.", agent.GCPollInterval))
 	}
 

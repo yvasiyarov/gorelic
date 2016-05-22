@@ -31,7 +31,7 @@ agent.Run()
 ```
 
 ### Middleware  
-If you using Beego, Martini, Revel or Gin framework you can hook up gorelic with your application by using the following middleware:
+If you using Beego, Martini, Revel, Kami or Gin framework you can hook up gorelic with your application by using the following middleware:
 - https://github.com/yvasiyarov/beego_gorelic   
 - https://github.com/yvasiyarov/martini_gorelic   
 - https://github.com/yvasiyarov/gocraft_gorelic   
@@ -39,7 +39,7 @@ If you using Beego, Martini, Revel or Gin framework you can hook up gorelic with
 - https://github.com/jingweno/negroni-gorelic
 - https://github.com/brandfolder/gin-gorelic
 - [https://github.com/syntaqx/echo-middleware/gorelic](https://github.com/syntaqx/echo-middleware/tree/master/gorelic)
-   
+- https://github.com/david4shure/kamigorelic
 
 ### Configuration  
 - NewrelicLicense - its the only mandatory setting of this agent.

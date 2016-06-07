@@ -48,6 +48,7 @@ If you using Beego, Martini, Revel, Kami or Gin framework you can hook up goreli
 - Verbose - print some usefull for debugging information. Default value: false
 - CollectGcStat - should agent collect garbage collector statistic or not. Default value: true
 - CollectHTTPStat - should agent collect HTTP metrics. Default value: false
+- CollectHTTPStatuses - should agent collect metrics on HTTP status codes. Default value: false
 - CollectMemoryStat - should agent collect memory allocator statistic or not. Default value: true
 - GCPollInterval - how often should GC statistic collected. Default value: 10 seconds. It has performance impact. For more information, please, see metrics documentation.
 - MemoryAllocatorPollInterval - how often should memory allocator statistic collected. Default value: 60 seconds. It has performance impact. For more information, please, read metrics documentation.

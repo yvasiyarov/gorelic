@@ -13,9 +13,29 @@ type tHTTPHandler struct {
 	originalHandlerFunc tHTTPHandlerFunc
 	isFunc              bool
 	timer               metrics.Timer
+	httpStatusCounters  map[int]metrics.Counter
+}
+
+//A wrapper over a http.ResponseWriter object
+type responseWriterWrapper struct {
+	originalWriter http.ResponseWriter
+	statusCode     int
 }
 
 var httpTimer metrics.Timer
+
+func (reponseWriterWrapper *responseWriterWrapper) Header() http.Header {
+	return reponseWriterWrapper.originalWriter.Header()
+}
+
+func (reponseWriterWrapper *responseWriterWrapper) Write(bytes []byte) (int, error) {
+	return reponseWriterWrapper.originalWriter.Write(bytes)
+}
+
+func (reponseWriterWrapper *responseWriterWrapper) WriteHeader(code int) {
+	reponseWriterWrapper.originalWriter.WriteHeader(code)
+	reponseWriterWrapper.statusCode = code
+}
 
 func newHTTPHandlerFunc(h tHTTPHandlerFunc) *tHTTPHandler {
 	return &tHTTPHandler{
@@ -34,10 +54,16 @@ func (handler *tHTTPHandler) ServeHTTP(w http.ResponseWriter, req *http.Request)
 	startTime := time.Now()
 	defer handler.timer.UpdateSince(startTime)
 
+	responseWriterWrapper := responseWriterWrapper{originalWriter: w, statusCode: http.StatusOK}
+
 	if handler.isFunc {
-		handler.originalHandlerFunc(w, req)
+		handler.originalHandlerFunc(&responseWriterWrapper, req)
 	} else {
-		handler.originalHandler.ServeHTTP(w, req)
+		handler.originalHandler.ServeHTTP(&responseWriterWrapper, req)
+	}
+
+	if statusCounter := handler.httpStatusCounters[responseWriterWrapper.statusCode]; statusCounter != nil {
+		statusCounter.Inc(1)
 	}
 }
 

@@ -101,6 +101,8 @@ func (agent *Agent) WrapHTTPHandlerFunc(h tHTTPHandlerFunc) tHTTPHandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		proxy := newHTTPHandlerFunc(h)
 		proxy.timer = agent.HTTPTimer
+		//set the http status counters before serving request.
+		proxy.httpStatusCounters = agent.HTTPStatusCounters
 		proxy.ServeHTTP(w, req)
 	}
 }

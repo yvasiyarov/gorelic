@@ -82,3 +82,11 @@ type timerPercentile95Metrica struct {
 func (metrica *timerPercentile95Metrica) GetValue() (float64, error) {
 	return metrica.dataSource.Percentile(0.95) / float64(time.Millisecond), nil
 }
+
+type timerPercentile99Metrica struct {
+	*baseTimerMetrica
+}
+
+func (metrica *timerPercentile99Metrica) GetValue() (float64, error) {
+	return metrica.dataSource.Percentile(0.99) / float64(time.Millisecond), nil
+}

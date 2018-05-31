@@ -1,18 +1,21 @@
 package gorelic
 
 import (
+	"sync"
+	"time"
+
 	metrics "github.com/yvasiyarov/go-metrics"
 	"github.com/yvasiyarov/newrelic_platform_go"
-	"time"
 )
 
 type Tracer struct {
+	sync.RWMutex
 	metrics   map[string]*TraceTransaction
 	component newrelic_platform_go.IComponent
 }
 
 func newTracer(component newrelic_platform_go.IComponent) *Tracer {
-	return &Tracer{make(map[string]*TraceTransaction), component}
+	return &Tracer{metrics: make(map[string]*TraceTransaction), component: component}
 }
 
 func (t *Tracer) Trace(name string, traceFunc func()) {
@@ -23,13 +26,22 @@ func (t *Tracer) Trace(name string, traceFunc func()) {
 
 func (t *Tracer) BeginTrace(name string) *Trace {
 	tracerName := "Trace/" + name
-	m := t.metrics[tracerName]
-	if m == nil {
-		t.metrics[tracerName] = &TraceTransaction{tracerName, metrics.NewTimer()}
-		m = t.metrics[tracerName]
-		m.addMetricsToComponent(t.component)
+
+	t.RLock()
+	if m, ok := t.metrics[tracerName]; ok {
+		return &Trace{m, time.Now()}
 	}
-	return &Trace{m, time.Now()}
+	t.RUnlock()
+
+	trans := TraceTransaction{name: tracerName, timer: metrics.NewTimer()}
+
+	t.Lock()
+	t.metrics[tracerName] = &trans
+	t.Unlock()
+
+	trans.addMetricsToComponent(t.component)
+
+	return &Trace{transaction: &trans, startTime: time.Now()}
 }
 
 type Trace struct {

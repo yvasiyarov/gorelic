@@ -1,9 +1,12 @@
 package gorelic
 
 import (
+	"math/rand"
 	"reflect"
 	"sort"
+	"sync"
 	"testing"
+	"time"
 
 	"github.com/yvasiyarov/newrelic_platform_go"
 )
@@ -56,5 +59,39 @@ func TestTrace(t *testing.T) {
 
 	if !traceFuncExecuted {
 		t.Fatal("Trace func was not executed")
+	}
+}
+
+func TestParallelTraces(t *testing.T) {
+	tracer := newTracer(dummyComponent)
+	metricNames := []string{"Leonardo", "Michalangelo", "Raphael", "Donatello"}
+	goroutines := 32
+
+	var wg sync.WaitGroup
+	for i := 0; i < goroutines; i++ {
+		wg.Add(1)
+		nameIndex := i // Capture a copy of i
+		go func() {
+			trace := tracer.BeginTrace(metricNames[nameIndex%len(metricNames)])
+			defer trace.EndTrace()
+
+			time.Sleep(time.Duration(rand.Intn(100)) * time.Millisecond)
+
+			wg.Done()
+		}()
+	}
+	wg.Wait()
+
+	if len(tracer.metrics) != len(metricNames) {
+		t.Errorf("Expected to have %d metrics but got %d instead", len(metricNames), len(tracer.metrics))
+	}
+
+	traces := int64(0)
+	for _, metric := range tracer.metrics {
+		traces += metric.timer.Count()
+	}
+
+	if traces != int64(goroutines) {
+		t.Errorf("Expected to have %d traces but got %d instead", goroutines, traces)
 	}
 }

@@ -27,21 +27,32 @@ func (t *Tracer) Trace(name string, traceFunc func()) {
 func (t *Tracer) BeginTrace(name string) *Trace {
 	tracerName := "Trace/" + name
 
+	// Happy path: The transaction has already been created, so just read it from the map.
 	t.RLock()
-	if m, ok := t.metrics[tracerName]; ok {
-		return &Trace{m, time.Now()}
-	}
+	trans, ok := t.metrics[tracerName]
 	t.RUnlock()
+	if ok {
+		return newTrace(trans)
+	}
 
-	trans := TraceTransaction{name: tracerName, timer: metrics.NewTimer()}
-
+	// Slow path: We need to create the transaction and write it to the map, but first
+	// we need to check if some other goroutine added the same transaction to the map in the
+	// mean time.
 	t.Lock()
-	t.metrics[tracerName] = &trans
+	trans, ok = t.metrics[tracerName]
+	if ok {
+		t.Unlock()
+		return newTrace(trans)
+	}
+
+	trans = &TraceTransaction{name: tracerName, timer: metrics.NewTimer()}
+
+	t.metrics[tracerName] = trans
 	t.Unlock()
 
 	trans.addMetricsToComponent(t.component)
 
-	return &Trace{transaction: &trans, startTime: time.Now()}
+	return newTrace(trans)
 }
 
 type Trace struct {
@@ -51,6 +62,10 @@ type Trace struct {
 
 func (t *Trace) EndTrace() {
 	t.transaction.timer.UpdateSince(t.startTime)
+}
+
+func newTrace(trans *TraceTransaction) *Trace {
+	return &Trace{transaction: trans, startTime: time.Now()}
 }
 
 type TraceTransaction struct {

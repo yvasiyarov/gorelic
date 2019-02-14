@@ -14,7 +14,7 @@ type counterByStatusMetrica struct {
 	units   string
 }
 
-// metrics.IMetrica interface implementation.
+// GetName: metrics.IMetrica interface implementation.
 func (m *counterByStatusMetrica) GetName() string { return m.name }
 
 func (m *counterByStatusMetrica) GetUnits() string { return m.units }

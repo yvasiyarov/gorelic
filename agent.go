@@ -86,7 +86,7 @@ type resettableComponent struct {
 	counters map[int]metrics.Counter
 }
 
-// newrelic_platform_go.IComponent interface implementation
+// ClearSentData: newrelic_platform_go.IComponent interface implementation
 func (c resettableComponent) ClearSentData() {
 	c.IComponent.ClearSentData()
 	for _, counter := range c.counters {

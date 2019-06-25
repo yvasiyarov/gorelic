@@ -1,4 +1,4 @@
-# GoRelic
+# GoRelic is deprecated in favour of [https://github.com/newrelic/go-agent](https://github.com/newrelic/go-agent)
 
 New Relic agent for Go runtime. It collect a lot of metrics about scheduler, garbage collector and memory allocator and 
 send them to NewRelic.
